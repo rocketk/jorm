@@ -78,6 +78,9 @@ public class ReflectionUtil {
         try {
             final Method m = enumObject.getClass().getMethod(valueMethod);
 //            m.setAccessible(true);
+//            final Object value = m.invoke(enumObject);
+//            final Class<?> returnType = m.getReturnType();
+//            return new ObjectAndType(returnType, value);
             return m.invoke(enumObject);
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException(String.format("no such method '%s' to invoke for class '%s', caused by: %s",

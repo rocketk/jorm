@@ -6,6 +6,7 @@ import com.google.common.base.MoreObjects;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,18 +15,18 @@ import java.util.Map;
  */
 @JormTable(name = "employee")
 public class Employee {
-    private Long pk;
+    private long pk;
     private String name;
     private Gender gender;
     private AcademicDegree academicDegree;
     private BigDecimal salary;
     private String[] tags;
+    private List<String> languages;
     private Map<String, Object> attributes;
     private Boolean duringInternship;
     private byte[] avatar;
     private Date birthDate;
     private Profile profile;
-    private ProfileWithoutAnnotation profileWithoutAnnotation;
     private Date createdAt;
     private Date updatedAt;
     private Date deletedAt;
@@ -35,11 +36,11 @@ public class Employee {
     public Employee() {
     }
 
-    public Long getPk() {
+    public long getPk() {
         return pk;
     }
 
-    public void setPk(Long pk) {
+    public void setPk(long pk) {
         this.pk = pk;
     }
 
@@ -155,14 +156,6 @@ public class Employee {
         this.profile = profile;
     }
 
-    public ProfileWithoutAnnotation getProfileWithoutAnnotation() {
-        return profileWithoutAnnotation;
-    }
-
-    public void setProfileWithoutAnnotation(ProfileWithoutAnnotation profileWithoutAnnotation) {
-        this.profileWithoutAnnotation = profileWithoutAnnotation;
-    }
-
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -172,16 +165,24 @@ public class Employee {
                 .add("academicDegree", academicDegree)
                 .add("salary", salary)
                 .add("tags", tags)
+                .add("languages", languages)
                 .add("attributes", attributes)
                 .add("duringInternship", duringInternship)
                 .add("avatar", avatar)
                 .add("birthDate", birthDate)
                 .add("profile", profile)
-                .add("profileWithoutAnnotation", profileWithoutAnnotation)
                 .add("createdAt", createdAt)
                 .add("updatedAt", updatedAt)
                 .add("deletedAt", deletedAt)
                 .add("secret", secret)
                 .toString();
+    }
+
+    public List<String> getLanguages() {
+        return languages;
+    }
+
+    public void setLanguages(List<String> languages) {
+        this.languages = languages;
     }
 }

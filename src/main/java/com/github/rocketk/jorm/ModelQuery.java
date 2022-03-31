@@ -3,6 +3,7 @@ package com.github.rocketk.jorm;
 import com.github.rocketk.jorm.mapper.row.RowMapper;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author pengyu
@@ -35,7 +36,7 @@ public interface ModelQuery<T> {
 
     ModelQuery<T> shouldFindDeleted(boolean findDeleted);
 
-    T first();
+    Optional<T> first();
 
     List<T> find();
 

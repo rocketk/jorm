@@ -1,10 +1,16 @@
 package com.github.rocketk.jorm.json.jackson;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.github.rocketk.jorm.json.JsonException;
 import com.github.rocketk.jorm.json.JsonMapper;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
 
 /**
  * @author pengyu
@@ -14,17 +20,17 @@ public class JacksonMapper implements JsonMapper {
 
     private final ObjectMapper om = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            .setSerializationInclusion(JsonInclude.Include.ALWAYS);
 
     @Override
     public <T> T unmarshal(String content, Class<T> clazz) {
-        if (content == null) {
+        if (StringUtils.isBlank(content)) {
             return null;
         }
         try {
             return om.readValue(content, clazz);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e.getMessage(), e);
+        } catch (Exception e) {
+            throw new JsonException(e.getMessage(), e);
         }
     }
 
@@ -35,8 +41,8 @@ public class JacksonMapper implements JsonMapper {
         }
         try {
             return om.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new JsonException(e);
         }
     }
 

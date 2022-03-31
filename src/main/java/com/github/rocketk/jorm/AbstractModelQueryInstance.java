@@ -13,10 +13,12 @@ import com.github.rocketk.jorm.mapper.row.RowMapper;
 import com.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import com.github.rocketk.jorm.mapper.table.SnakeUpperTableModelNameMapper;
 import com.github.rocketk.jorm.mapper.table.TableModelNameMapper;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.List;
 
 import static com.github.rocketk.jorm.JdbcUtil.setBaseTypeArg;
 import static com.github.rocketk.jorm.ReflectionUtil.*;
@@ -65,19 +67,19 @@ public abstract class AbstractModelQueryInstance<T> {
     }
 
     protected void initTableName() {
-        if (this.table != null && !this.table.isEmpty()) {
+        if (StringUtils.isNotBlank(table)) {
             return;
         }
         if (this.model == null) {
             throw new JormQueryException("either table or model is required");
         }
         final String tableNameByAnnotation = tableName(this.model);
-        if (tableNameByAnnotation != null && !tableNameByAnnotation.isEmpty()) {
+        if (StringUtils.isNotBlank(tableNameByAnnotation)) {
             this.table = tableNameByAnnotation;
             return;
         }
         final String tableName = this.tableModelNameMapper.modelNameToTableName(model.getSimpleName());
-        if (tableName == null || tableName.isEmpty()) {
+        if (StringUtils.isBlank(tableName)) {
             throw new JormQueryException("table is null");
         }
         this.table = tableName;
@@ -117,11 +119,17 @@ public abstract class AbstractModelQueryInstance<T> {
                         ps.setString(parameterIndex, enumObj.name());
                     } else {
                         final Object value = getValueForCustomEnum(enumObj, customEnum.valueMethod());
-                        setBaseTypeArg(ps, parameterIndex, value);
+                        if (!setBaseTypeArg(ps, parameterIndex, value)) {
+                            throw new IllegalArgumentException("unsupported type of argument for PreparedStatement: "+value);
+                        }
                     }
                     continue;
                 }
                 if (argType.isArray()) {
+                    ps.setString(parameterIndex, stringArrayColumnFieldMapper.fieldToColumn(arg));
+                    continue;
+                }
+                if (List.class.isAssignableFrom(argType)) {
                     ps.setString(parameterIndex, stringArrayColumnFieldMapper.fieldToColumn(arg));
                     continue;
                 }

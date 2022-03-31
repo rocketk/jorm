@@ -1,7 +1,7 @@
 package com.github.rocketk.jorm.json.fastjson;
 
 import com.alibaba.fastjson.JSON;
-import com.github.rocketk.jorm.json.JsonMapper;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author pengyu
@@ -10,7 +10,7 @@ import com.github.rocketk.jorm.json.JsonMapper;
 public class FastjsonMapper implements com.github.rocketk.jorm.json.JsonMapper {
     @Override
     public <T> T unmarshal(String content, Class<T> clazz) {
-        if (content == null) {
+        if (StringUtils.isBlank(content)) {
             return null;
         }
         return JSON.parseObject(content, clazz);

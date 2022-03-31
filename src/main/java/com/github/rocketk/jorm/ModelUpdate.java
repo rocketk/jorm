@@ -11,6 +11,8 @@ public interface ModelUpdate<T> {
 
     ModelUpdate<T> table(String table);
 
+    ModelUpdate<T> omit(String... columns);
+
     ModelUpdate<T> obj(@Nullable T obj);
 
     ModelUpdate<T> value(String column, Object value);

@@ -1,9 +1,12 @@
 package com.github.rocketk.jorm;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.github.rocketk.AcademicDegree;
 import com.github.rocketk.Employee;
+import com.github.rocketk.Gender;
 import com.github.rocketk.jorm.conf.Config;
 import com.github.rocketk.jorm.conf.ConfigFactory;
+import com.google.common.collect.Lists;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -13,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 
@@ -51,24 +55,24 @@ public class JormTest {
 
     @Test
     public void first() {
-        final Employee employee = db.queryInstance(Employee.class)
-//                .select("name", "salary")
-                .where("name=?", "王大锤")
+        final Optional<Employee> employee = db.query(Employee.class)
+                .where("name=?", "Mary")
                 .first();
         assertNotNull(employee);
-        assertNotNull(employee.getPk());
-        assertNotNull(employee.getName());
-        assertNotNull(employee.getGender());
-        assertNotNull(employee.getAcademicDegree());
-        assertNotNull(employee.getSalary());
-        assertNotNull(employee.getBirthDate());
-        assertNotNull(employee.getTags());
-        assertNotNull(employee.getAttributes());
-        assertNotNull(employee.getCreatedAt());
-        assertNotNull(employee.getUpdatedAt());
-        assertNotNull(employee.getProfile());
-        assertNull(employee.getProfileWithoutAnnotation());
-        logger.info("employee: {}", employee);
+        assertTrue(employee.isPresent());
+        final Employee e = employee.get();
+//        assertNotNull(e.getName());
+//        assertNotNull(e.getGender());
+//        assertNotNull(e.getAcademicDegree());
+//        assertNotNull(e.getSalary());
+//        assertNotNull(e.getBirthDate());
+//        assertNotNull(e.getTags());
+//        assertNotNull(e.getAttributes());
+//        assertNotNull(e.getCreatedAt());
+//        assertNotNull(e.getUpdatedAt());
+//        assertNotNull(e.getProfile());
+        logger.info("e: {}", e);
+
     }
 
 
@@ -77,8 +81,7 @@ public class JormTest {
         final long t0 = System.currentTimeMillis();
         final int n = 1000;
         for (int i = 0; i < n; i++) {
-            final Employee employee = db.queryInstance(Employee.class)
-                    //                .select("name", "salary")
+            final Optional<Employee> employee = db.query(Employee.class)
                     .where("name=?", "王大锤")
                     .first();
         }
@@ -89,31 +92,35 @@ public class JormTest {
 
     @Test
     public void first_withSelect() {
-        final Employee employee = db.queryInstance(Employee.class)
+        final Optional<Employee> employee = db.query(Employee.class)
                 .select("avatar")
                 .where("name=?", "Jack")
                 .first();
 //        assertNotNull(employee.getName());
 //        assertNotNull(employee.getSalary());
 //        assertNull(employee.getAvatar());
-        assertNull(employee.getPk());
+        assertNotNull(employee);
+        assertTrue(employee.isPresent());
+        final Employee e = employee.get();
         logger.info("employee: {}", employee);
     }
 
     @Test
     public void first_withOmit() {
-        final Employee employee = db.queryInstance(Employee.class)
+        final Optional<Employee> employee = db.query(Employee.class)
                 .omit("pk", "avatar")
                 .where("name=?", "Jack")
                 .first();
-        assertNull(employee.getAvatar());
+        assertNotNull(employee);
+        assertTrue(employee.isPresent());
+        assertNull(employee.get().getAvatar());
         logger.info("employee: {}", employee);
     }
 
 
     @Test
     public void find() {
-        final List<Employee> list = db.queryInstance(Employee.class)
+        final List<Employee> list = db.query(Employee.class)
 //                .omit("avatar")
                 .orderBy("name desc")
                 .find();
@@ -123,7 +130,7 @@ public class JormTest {
     @Test
     public void insert() {
         final Date now = new Date();
-        final boolean success = db.updateInstance(Employee.class)
+        final boolean success = db.update(Employee.class)
                 .value("name", "柯达")
                 .value("created_at", now)
                 .value("updated_at", now)
@@ -135,7 +142,7 @@ public class JormTest {
     public void insert_withGeneratedKeys_firstKey() {
         final Date now = new Date();
         try {
-            final long pk = db.updateInstance(Employee.class)
+            final long pk = db.update(Employee.class)
                     .value("name", "柯达")
                     .value("created_at", now)
                     .value("updated_at", now)
@@ -148,10 +155,34 @@ public class JormTest {
     }
 
     @Test
+    public void insert_withObject_withGeneratedKeys_firstKey() {
+        final Employee employee = new Employee();
+        final Date now = new Date();
+        employee.setName("李四");
+        employee.setGender(Gender.FEMALE);
+        employee.setAcademicDegree(AcademicDegree.MASTER);
+        employee.setTags(new String[]{"admin leader"});
+        employee.setLanguages(Lists.newArrayList("java go rust"));
+        employee.setUpdatedAt(now);
+        employee.setCreatedAt(now);
+        try {
+            final long pk = db.update(Employee.class)
+                    .obj(employee)
+                    .omit("gender")
+                    .execInsertAndReturnFirstKey();
+            assertTrue(pk > 0);
+            logger.info("generated pk: {}", pk);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
     public void insert_withGeneratedKeys_keysArray() {
         final Date now = new Date();
         try {
-            final long[] keys = db.updateInstance(Employee.class)
+            final long[] keys = db.update(Employee.class)
                     .value("name", "柯达")
                     .value("created_at", now)
                     .value("updated_at", now)

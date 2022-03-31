@@ -6,6 +6,7 @@ import com.github.rocketk.jorm.mapper.column.ColumnFieldNameMapper;
 import com.github.rocketk.jorm.mapper.column.DelimiterBasedStringArrayColumnFieldMapper;
 import com.github.rocketk.jorm.mapper.column.SnakeCamelColumnFieldNameMapper;
 import com.github.rocketk.jorm.mapper.column.StringArrayColumnFieldMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,7 @@ public class DefaultRowMapperFactory implements RowMapperFactory {
     private final JsonMapper jsonMapper;
 
     public DefaultRowMapperFactory(String arrayDelimiter, String jsonProvider) {
-        if (arrayDelimiter == null || arrayDelimiter.isEmpty()) {
+        if (StringUtils.isBlank(arrayDelimiter)) {
             arrayDelimiter = " ";
         }
         stringArrayColumnFieldMapper = new DelimiterBasedStringArrayColumnFieldMapper(arrayDelimiter);

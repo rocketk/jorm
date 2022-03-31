@@ -2,12 +2,15 @@ package com.github.rocketk.jorm;
 
 import com.github.rocketk.jorm.conf.Config;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Field;
 import java.sql.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,11 +26,27 @@ public class JormModelUpdateInstance<T> extends AbstractModelQueryInstance<T> im
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     //    private Map<String, Object> args = new HashMap<>();
-    private List<String> argKeys = Lists.newArrayList();
-    private List<Object> argValues = Lists.newArrayList();
+    private final List<String> argKeys = Lists.newArrayList();
+    private final List<Object> argValues = Lists.newArrayList();
+    private final Map<String, Object> args = Maps.newHashMap();
+    private final List<String> omittedColumns = Lists.newArrayList();
 
     public JormModelUpdateInstance(DataSource ds, Config config, Class<T> model) {
         super(ds, config, model);
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        initArgs();
+    }
+
+    private void initArgs() {
+        omittedColumns.forEach(args::remove);
+        args.forEach((k, v) -> {
+            argKeys.add(k);
+            argValues.add(v);
+        });
     }
 
     @Override
@@ -37,22 +56,30 @@ public class JormModelUpdateInstance<T> extends AbstractModelQueryInstance<T> im
     }
 
     @Override
+    public ModelUpdate<T> omit(String... columns) {
+        omittedColumns.addAll(Arrays.asList(columns));
+        return this;
+    }
+
+    @Override
     public ModelUpdate<T> obj(T obj) {
         assert obj != null;
         this.model = (Class<T>) obj.getClass();
         final Field[] fields = this.model.getDeclaredFields();
         for (Field f : fields) {
+            f.setAccessible(true);
             if (shouldIgnoreWriteToDb(f)) {
                 continue;
             }
             String columnName = columnName(f);
-            if (columnName == null || columnName.isEmpty()) {
+            if (StringUtils.isBlank(columnName)) {
                 columnName = this.columnFieldNameMapper.fieldNameToColumnName(f.getName());
             }
             try {
                 final Object value = f.get(obj);
-                this.argKeys.add(columnName);
-                this.argValues.add(value);
+//                this.argKeys.add(columnName);
+//                this.argValues.add(value);
+                this.args.put(columnName, value);
             } catch (IllegalAccessException e) {
                 logger.error(e.getMessage(), e);
                 throw new JormQueryException(e);
@@ -64,8 +91,9 @@ public class JormModelUpdateInstance<T> extends AbstractModelQueryInstance<T> im
     @Override
     public ModelUpdate<T> value(String column, Object value) {
 //        this.args.put(column, value);
-        this.argKeys.add(column);
-        this.argValues.add(value);
+//        this.argKeys.add(column);
+//        this.argValues.add(value);
+        this.args.put(column, value);
         return this;
     }
 

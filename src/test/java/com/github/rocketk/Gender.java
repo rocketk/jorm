@@ -10,7 +10,7 @@ import com.github.rocketk.jorm.anno.JormCustomEnum;
 public enum Gender {
     FEMALE(0),
     MALE(1);
-    private int value;
+    private final int value;
 
     Gender(int value) {
         this.value = value;

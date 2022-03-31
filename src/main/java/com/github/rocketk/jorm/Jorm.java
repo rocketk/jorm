@@ -24,7 +24,7 @@ public class Jorm {
         this.config = config;
     }
 
-    public <T> ModelQuery<T> queryInstance(Class<T> model) {
+    public <T> ModelQuery<T> query(Class<T> model) {
         return new JormModelQueryInstance<>(ds, config, model);
     }
 
@@ -32,7 +32,7 @@ public class Jorm {
         throw new RuntimeException("not implemented");
     }
 
-    public <T> ModelUpdate<T> updateInstance(Class<T> model) {
+    public <T> ModelUpdate<T> update(Class<T> model) {
         return new JormModelUpdateInstance<>(ds, config, model);
     }
 }

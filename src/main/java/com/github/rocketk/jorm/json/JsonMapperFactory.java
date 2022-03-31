@@ -3,6 +3,7 @@ package com.github.rocketk.jorm.json;
 import com.github.rocketk.jorm.json.fastjson.FastjsonMapper;
 import com.github.rocketk.jorm.json.gson.GsonMapper;
 import com.github.rocketk.jorm.json.jackson.JacksonMapper;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author pengyu
@@ -10,7 +11,7 @@ import com.github.rocketk.jorm.json.jackson.JacksonMapper;
  */
 public class JsonMapperFactory {
     public static JsonMapper getJsonMapper(final String jsonProvider) {
-        if ("jackson".equalsIgnoreCase(jsonProvider) || jsonProvider == null || jsonProvider.isEmpty()) {
+        if ("jackson".equalsIgnoreCase(jsonProvider) || StringUtils.isBlank(jsonProvider)) {
             return new JacksonMapper();
         }
         if ("gon".equalsIgnoreCase(jsonProvider)) {

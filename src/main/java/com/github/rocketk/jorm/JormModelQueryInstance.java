@@ -12,10 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.github.rocketk.jorm.ReflectionUtil.deletedAtColumn;
 import static com.github.rocketk.jorm.ReflectionUtil.onlyFindNonDeletedByAnnotation;
@@ -119,7 +116,7 @@ public class JormModelQueryInstance<T> extends AbstractModelQueryInstance<T> imp
     }
 
     @Override
-    public T first() {
+    public Optional<T> first() {
         init();
         this.limit = 1;
         final String sql = this.buildQuerySql();
@@ -130,7 +127,8 @@ public class JormModelQueryInstance<T> extends AbstractModelQueryInstance<T> imp
              final PreparedStatement ps = conn.prepareStatement(sql)) {
             setArgs(ps, whereClauseArgs.toArray());
             try (final ResultSet rs = ps.executeQuery()) {
-                return parseResultSetToSingleObject(rs);
+                final T obj = parseResultSetToSingleObject(rs);
+                return Optional.ofNullable(obj);
             } catch (SQLException e) {
                 throw e;
             }

@@ -11,10 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.github.rocketk.jorm.JdbcUtil.getFromResultSet;
 import static com.github.rocketk.jorm.JdbcUtil.isSupportedTypeByJdbc;
@@ -126,6 +123,15 @@ public class DefaultRowMapper<T> implements RowMapper<T> {
                 throw new JormQueryException("columnValue must be type of String for array field, but actual " + columnValue.getClass().getCanonicalName());
             }
             f.set(obj, stringArrayColumnFieldMapper.columnToField(((String) columnValue), fieldType));
+            return;
+        }
+        if (List.class.isAssignableFrom(fieldType)) {
+            if (!(columnValue instanceof String)) {
+                throw new JormQueryException("columnValue must be type of String for array field, but actual " + columnValue.getClass().getCanonicalName());
+            }
+            final Object arr = stringArrayColumnFieldMapper.columnToField(((String) columnValue), List.class);
+
+            f.set(obj, arr);
             return;
         }
         throw new JormQueryException("unsupported type: " + fieldType.getCanonicalName());

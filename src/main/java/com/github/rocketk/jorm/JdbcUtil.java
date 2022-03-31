@@ -15,10 +15,15 @@ public class JdbcUtil {
     private static Class[] supportedType = new Class[]{
             String.class,
             Integer.class,
+            int.class,
             Long.class,
+            long.class,
             Byte.class,
+            byte.class,
             Short.class,
+            short.class,
             Boolean.class,
+            boolean.class,
             BigDecimal.class,
             Date.class,
             byte[].class,
@@ -43,19 +48,19 @@ public class JdbcUtil {
         if (String.class.isAssignableFrom(fieldType)) {
             final String value = rs.getString(index);
             return rs.wasNull() ? null : value;
-        } else if (Integer.class.isAssignableFrom(fieldType)) {
+        } else if (Integer.class.isAssignableFrom(fieldType) || int.class.isAssignableFrom(fieldType)) {
             final int value = rs.getInt(index);
             return rs.wasNull() ? null : value;
-        } else if (Long.class.isAssignableFrom(fieldType)) {
+        } else if (Long.class.isAssignableFrom(fieldType) || long.class.isAssignableFrom(fieldType)) {
             final long value = rs.getLong(index);
             return rs.wasNull() ? null : value;
-        } else if (Byte.class.isAssignableFrom(fieldType)) {
+        } else if (Byte.class.isAssignableFrom(fieldType) || byte.class.isAssignableFrom(fieldType)) {
             final byte value = rs.getByte(index);
             return rs.wasNull() ? null : value;
-        } else if (Short.class.isAssignableFrom(fieldType)) {
+        } else if (Short.class.isAssignableFrom(fieldType) || short.class.isAssignableFrom(fieldType)) {
             final short value = rs.getShort(index);
             return rs.wasNull() ? null : value;
-        } else if (Boolean.class.isAssignableFrom(fieldType)) {
+        } else if (Boolean.class.isAssignableFrom(fieldType) || boolean.class.isAssignableFrom(fieldType)) {
             final boolean value = rs.getBoolean(index);
             return rs.wasNull() ? null : value;
         } else if (BigDecimal.class.isAssignableFrom(fieldType)) {
@@ -87,20 +92,22 @@ public class JdbcUtil {
         if (String.class.getCanonicalName().equals(columnClassName)) {
             final String value = rs.getString(index);
             return rs.wasNull() ? null : value;
-        } else if (Integer.class.getCanonicalName().equals(columnClassName)) {
+        } else if (Integer.class.getCanonicalName().equals(columnClassName) || int.class.getCanonicalName().equals(columnClassName)) {
             final int value = rs.getInt(index);
             return rs.wasNull() ? null : value;
-        } else if (Long.class.getCanonicalName().equals(columnClassName)) {
+        } else if (Long.class.getCanonicalName().equals(columnClassName) || long.class.getCanonicalName().equals(columnClassName)) {
             final long value = rs.getLong(index);
             return rs.wasNull() ? null : value;
-        } else if (Byte.class.getCanonicalName().equals(columnClassName)) {
+        } else if (Byte.class.getCanonicalName().equals(columnClassName) || byte.class.getCanonicalName().equals(columnClassName)) {
             final byte value = rs.getByte(index);
             return rs.wasNull() ? null : value;
-        } else if (Short.class.getCanonicalName().equals(columnClassName)) {
+        } else if (Short.class.getCanonicalName().equals(columnClassName) || short.class.getCanonicalName().equals(columnClassName)) {
             final short value = rs.getShort(index);
             return rs.wasNull() ? null : value;
-        } else if (Boolean.class.getCanonicalName().equals(columnClassName)) {
-            final boolean value = rs.getBoolean(index);
+        } else if (Boolean.class.getCanonicalName().equals(columnClassName) || boolean.class.getCanonicalName().equals(columnClassName)) {
+            // 由于 mysql 中 tinyint(1) 类型的列，在 jdbc driver 中会当成 Boolean 类型，这样会导致精度被降低
+            // 因此我们要还原数据库中的数字
+            final int value = rs.getByte(index);
             return rs.wasNull() ? null : value;
         } else if (BigDecimal.class.getCanonicalName().equals(columnClassName)) {
             return rs.getBigDecimal(index);
@@ -125,7 +132,8 @@ public class JdbcUtil {
      */
     public static boolean setBaseTypeArg(PreparedStatement ps, int parameterIndex, Object arg) throws SQLException {
         if (arg == null) {
-            ps.setNull(parameterIndex, ps.getParameterMetaData().getParameterType(parameterIndex));
+//            ps.setNull(parameterIndex, ps.getParameterMetaData().getParameterType(parameterIndex));
+            ps.setObject(parameterIndex, null);
             return true;
         }
         if (arg instanceof String) {
@@ -164,6 +172,7 @@ public class JdbcUtil {
             ps.setShort(parameterIndex, (Short) arg);
             return true;
         }
-        throw new JormQueryException("unsupported argument type " + arg.getClass().getCanonicalName());
+//        throw new JormQueryException("unsupported argument type " + arg.getClass().getCanonicalName());
+        return false;
     }
 }
