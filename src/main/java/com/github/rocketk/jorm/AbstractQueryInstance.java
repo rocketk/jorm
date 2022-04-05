@@ -2,6 +2,7 @@ package com.github.rocketk.jorm;
 
 import com.github.rocketk.jorm.anno.JormCustomEnum;
 import com.github.rocketk.jorm.conf.Config;
+import com.github.rocketk.jorm.dialect.Dialect;
 import com.github.rocketk.jorm.json.JsonMapper;
 import com.github.rocketk.jorm.json.JsonMapperFactory;
 import com.github.rocketk.jorm.mapper.column.ColumnFieldNameMapper;
@@ -13,6 +14,7 @@ import com.github.rocketk.jorm.mapper.row.RowMapper;
 import com.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import com.github.rocketk.jorm.mapper.table.SnakeUpperTableModelNameMapper;
 import com.github.rocketk.jorm.mapper.table.TableModelNameMapper;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.sql.DataSource;
@@ -28,7 +30,7 @@ import static com.github.rocketk.jorm.ReflectionUtil.*;
  * @author pengyu
  * @date 2022/3/29
  */
-public abstract class AbstractModelQueryInstance<T> {
+public abstract class AbstractQueryInstance<T> {
     protected final TableModelNameMapper tableModelNameMapper = new SnakeUpperTableModelNameMapper();
     protected final ColumnFieldNameMapper columnFieldNameMapper = new SnakeCamelColumnFieldNameMapper();
     protected StringArrayColumnFieldMapper stringArrayColumnFieldMapper;
@@ -40,7 +42,11 @@ public abstract class AbstractModelQueryInstance<T> {
     protected Class<T> model;
     protected String table;
 
-    public AbstractModelQueryInstance(DataSource ds, Config config, Class<T> model) {
+    protected String rawSql;
+    protected Object[] args;
+    protected Dialect dialect = Dialect.STANDARD;
+
+    public AbstractQueryInstance(DataSource ds, Config config, Class<T> model) {
         this.ds = ds;
         this.config = config;
         this.model = model;
@@ -120,7 +126,7 @@ public abstract class AbstractModelQueryInstance<T> {
                     } else {
                         final Object value = getValueForCustomEnum(enumObj, customEnum.valueMethod());
                         if (!setBaseTypeArg(ps, parameterIndex, value)) {
-                            throw new IllegalArgumentException("unsupported type of argument for PreparedStatement: "+value);
+                            throw new IllegalArgumentException("unsupported type of argument for PreparedStatement: " + value);
                         }
                     }
                     continue;
@@ -143,5 +149,6 @@ public abstract class AbstractModelQueryInstance<T> {
             throw new JormQueryException(e);
         }
     }
+
 
 }

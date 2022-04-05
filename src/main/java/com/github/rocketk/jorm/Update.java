@@ -7,17 +7,17 @@ import java.util.Map;
  * @author pengyu
  * @date 2022/3/28
  */
-public interface ModelUpdate<T> {
+public interface Update<T> {
 
-    ModelUpdate<T> table(String table);
+    Update<T> table(String table);
 
-    ModelUpdate<T> omit(String... columns);
+    Update<T> omit(String... columns);
 
-    ModelUpdate<T> obj(@Nullable T obj);
+    Update<T> obj(@Nullable T obj);
 
-    ModelUpdate<T> value(String column, Object value);
+    Update<T> value(String column, Object value);
 
-    ModelUpdate<T> values(Map<String, Object> valuesMap);
+    Update<T> values(Map<String, Object> valuesMap);
 
     boolean execInsert();
     long execInsertAndReturnFirstKey();

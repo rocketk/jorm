@@ -79,7 +79,11 @@ public class JdbcUtil {
             if (java.sql.Timestamp.class.getCanonicalName().equals(columnClassName)) {
                 return rs.getTimestamp(index);
             }
-            throw new JormQueryException("unsupported columnClassName: " + columnClassName);
+            if (java.time.LocalDateTime.class.getCanonicalName().equals(columnClassName)) {
+                return rs.getTimestamp(index);
+            }
+            return rs.getTimestamp(index);
+//            throw new JormQueryException("unsupported columnClassName: " + columnClassName);
         } else if (byte[].class.isAssignableFrom(fieldType)) {
             return rs.getBytes(index);
         }

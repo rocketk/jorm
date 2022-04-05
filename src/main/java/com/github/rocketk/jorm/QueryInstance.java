@@ -1,9 +1,11 @@
 package com.github.rocketk.jorm;
 
 import com.github.rocketk.jorm.conf.Config;
+import com.github.rocketk.jorm.dialect.Dialect;
 import com.github.rocketk.jorm.mapper.row.RowMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +14,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static com.github.rocketk.jorm.ReflectionUtil.deletedAtColumn;
 import static com.github.rocketk.jorm.ReflectionUtil.onlyFindNonDeletedByAnnotation;
@@ -21,19 +26,20 @@ import static com.github.rocketk.jorm.ReflectionUtil.onlyFindNonDeletedByAnnotat
  * @author pengyu
  * @date 2021/12/13
  */
-public class JormModelQueryInstance<T> extends AbstractModelQueryInstance<T> implements ModelQuery<T> {
+public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<T> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private Set<String> selectedColumns = Sets.newHashSet();
     private Set<String> omittedColumns = Sets.newHashSet();
     private String whereClause;
-    private List<Object> whereClauseArgs;
+    //    private List<Object> whereClauseArgs = new ArrayList<>();
     private String orderByClause;
     private Integer limit;
     private Integer offset;
+    private boolean count;
 
     private boolean findDeleted;
 
-    public JormModelQueryInstance(DataSource ds, Config config, Class<T> model) {
+    public QueryInstance(DataSource ds, Config config, Class<T> model) {
         super(ds, config, model);
     }
 
@@ -49,13 +55,13 @@ public class JormModelQueryInstance<T> extends AbstractModelQueryInstance<T> imp
 //    }
 
     @Override
-    public ModelQuery<T> rowMapper(RowMapper<T> rowMapper) {
+    public Query<T> rowMapper(RowMapper<T> rowMapper) {
         this.rowMapper = rowMapper;
         return this;
     }
 
     @Override
-    public ModelQuery<T> select(String... columns) {
+    public Query<T> select(String... columns) {
         if (columns == null) {
             return this;
         }
@@ -64,7 +70,7 @@ public class JormModelQueryInstance<T> extends AbstractModelQueryInstance<T> imp
     }
 
     @Override
-    public ModelQuery<T> omit(String... columns) {
+    public Query<T> omit(String... columns) {
         if (columns == null) {
             return this;
         }
@@ -73,44 +79,58 @@ public class JormModelQueryInstance<T> extends AbstractModelQueryInstance<T> imp
     }
 
     @Override
-    public ModelQuery<T> table(String table) {
+    public Query<T> table(String table) {
         this.table = table;
         return this;
     }
 
     @Override
-    public ModelQuery<T> where(String whereClause, Object... args) {
+    public Query<T> where(String whereClause, Object... args) {
         this.whereClause = whereClause;
-        if (args != null) {
-            if (this.whereClauseArgs == null) {
-                this.whereClauseArgs = new ArrayList<>();
-            }
-            this.whereClauseArgs.addAll(Arrays.asList(args));
+//        if (args != null) {
+//            if (this.whereClauseArgs == null) {
+//                this.whereClauseArgs = new ArrayList<>();
+//            }
+//            this.whereClauseArgs.addAll(Arrays.asList(args));
 //            this.whereClauseArgs.addAll()
-        }
+//        }
+        this.args = Optional.ofNullable(args).orElse(new Object[0]);
         return this;
     }
 
     @Override
-    public ModelQuery<T> orderBy(String orderByClause) {
+    public Query<T> rawSql(String rawSql, Object... args) {
+        this.rawSql = rawSql;
+        this.args = args;
+        return this;
+    }
+
+    @Override
+    public Query<T> orderBy(String orderByClause) {
         this.orderByClause = orderByClause;
         return this;
     }
 
     @Override
-    public ModelQuery<T> limit(int limit) {
+    public Query<T> limit(int limit) {
         this.limit = limit;
         return this;
     }
 
     @Override
-    public ModelQuery<T> offset(int offset) {
+    public Query<T> offset(int offset) {
         this.offset = offset;
         return this;
     }
 
     @Override
-    public ModelQuery<T> shouldFindDeleted(boolean findDeleted) {
+    public Query<T> dialect(Dialect dialect) {
+        this.dialect = dialect;
+        return this;
+    }
+
+    @Override
+    public Query<T> shouldFindDeleted(boolean findDeleted) {
         this.findDeleted = findDeleted;
         return this;
     }
@@ -121,11 +141,11 @@ public class JormModelQueryInstance<T> extends AbstractModelQueryInstance<T> imp
         this.limit = 1;
         final String sql = this.buildQuerySql();
         if (this.config.isPrintSql()) {
-            logger.info("exec sql: \"{}\", whereClauseArgs: \"{}\"", sql, whereClauseArgs);
+            logger.info("exec sql: \"{}\", args: \"{}\"", sql, args);
         }
         try (final Connection conn = this.ds.getConnection();
              final PreparedStatement ps = conn.prepareStatement(sql)) {
-            setArgs(ps, whereClauseArgs.toArray());
+            setArgs(ps, args);
             try (final ResultSet rs = ps.executeQuery()) {
                 final T obj = parseResultSetToSingleObject(rs);
                 return Optional.ofNullable(obj);
@@ -133,8 +153,35 @@ public class JormModelQueryInstance<T> extends AbstractModelQueryInstance<T> imp
                 throw e;
             }
         } catch (SQLException e) {
-            logger.error("an error occurred while executing sql: \"{}\", whereClauseArgs: \"{}\". error: {}, errorCode: {}, sqlState: {}",
-                    sql, whereClauseArgs, e.getMessage(), e.getErrorCode(), e.getSQLState());
+            logger.error("an error occurred while executing sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}",
+                    sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
+            throw new JormQueryException(e);
+        }
+
+    }
+
+    @Override
+    public long count() {
+        init();
+        this.limit = 1;
+        count = true;
+        final String sql = this.buildQuerySql();
+        if (this.config.isPrintSql()) {
+            logger.info("exec sql: \"{}\", args: \"{}\"", sql, args);
+        }
+        try (final Connection conn = this.ds.getConnection();
+             final PreparedStatement ps = conn.prepareStatement(sql)) {
+            setArgs(ps, args);
+            try (final ResultSet rs = ps.executeQuery()) {
+                return parseResultSetToLong(rs);
+            } catch (SQLException e) {
+                logger.error("failed to execute the sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}",
+                        sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
+                throw e;
+            }
+        } catch (SQLException e) {
+            logger.error("an error occurred while executing sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}",
+                    sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
             throw new JormQueryException(e);
         }
 
@@ -145,11 +192,11 @@ public class JormModelQueryInstance<T> extends AbstractModelQueryInstance<T> imp
         init();
         final String sql = this.buildQuerySql();
         if (this.config.isPrintSql()) {
-            logger.info("exec sql: \"{}\", whereClauseArgs: \"{}\"", sql, whereClauseArgs);
+            logger.info("exec sql: \"{}\", args: \"{}\"", sql, args);
         }
         try (final Connection conn = this.ds.getConnection();
              final PreparedStatement ps = conn.prepareStatement(sql)) {
-            setArgs(ps, whereClauseArgs == null ? null : whereClauseArgs.toArray());
+            setArgs(ps, args);
             try (final ResultSet rs = ps.executeQuery()) {
                 return parseResultSetToList(rs);
             } catch (SQLException e) {
@@ -168,8 +215,16 @@ public class JormModelQueryInstance<T> extends AbstractModelQueryInstance<T> imp
     }
 
     private String buildQuerySql() {
+        if (StringUtils.isNotBlank(this.rawSql)) {
+            return this.rawSql;
+        }
         final StringBuilder sql = new StringBuilder();
-        sql.append("select ").append(this.hasSelectedColumns() ? String.join(",", this.selectedColumns) : "*");
+        sql.append("select ");
+        if (this.count) {
+            sql.append(" count(*) ");
+        } else {
+            sql.append(this.hasSelectedColumns() ? String.join(",", this.selectedColumns) : "*");
+        }
         sql.append(" from ").append(this.table).append(" ");
         // where?
         final boolean _onlyFindNonDeleted = onlyFindNonDeleted();
@@ -187,12 +242,7 @@ public class JormModelQueryInstance<T> extends AbstractModelQueryInstance<T> imp
         if (this.orderByClause != null) {
             sql.append(" order by ").append(orderByClause).append(" ");
         }
-        if (this.limit != null) {
-            sql.append(" limit ").append(this.limit).append(" ");
-        }
-        if (this.offset != null) {
-            sql.append(" offset ").append(this.offset).append(" ");
-        }
+        appendLimitAndOffset(sql);
         return sql.toString();
     }
 
@@ -233,7 +283,33 @@ public class JormModelQueryInstance<T> extends AbstractModelQueryInstance<T> imp
         return null;
     }
 
+    private long parseResultSetToLong(ResultSet rs) throws SQLException {
+        if (rs.next()) {
+            return rs.getLong(1);
+        }
+        // error
+        return -1;
+    }
+
     private boolean hasSelectedColumns() {
         return this.selectedColumns != null && this.selectedColumns.size() > 0;
+    }
+
+    private void appendLimitAndOffset(StringBuilder sql) {
+        if (Dialect.STANDARD.equals(this.dialect)) {
+            if (this.limit != null) {
+                sql.append(" limit ").append(this.limit).append(" ");
+            }
+            if (this.offset != null) {
+                sql.append(" offset ").append(this.offset).append(" ");
+            }
+            return;
+        }
+        if (offset != null) {
+            sql.append(" offset ").append(offset);
+        }
+        if (limit != null) {
+            sql.append(" fetch first ").append(limit).append(" rows only");
+        }
     }
 }

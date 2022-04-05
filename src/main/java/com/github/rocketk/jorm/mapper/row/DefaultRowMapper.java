@@ -5,6 +5,7 @@ import com.github.rocketk.jorm.anno.JormCustomEnum;
 import com.github.rocketk.jorm.json.JsonMapper;
 import com.github.rocketk.jorm.mapper.column.ColumnFieldNameMapper;
 import com.github.rocketk.jorm.mapper.column.StringArrayColumnFieldMapper;
+import com.google.common.collect.Maps;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -39,6 +40,29 @@ public class DefaultRowMapper<T> implements RowMapper<T> {
 
     @Override
     public T rowToModel(ResultSet rs, Set<String> omittedColumns) {
+        if (Map.class.isAssignableFrom(this.model)) {
+            return (T) asMap(rs, omittedColumns);
+        }
+        return asObject(rs, omittedColumns);
+    }
+
+    private Map<String, Object> asMap(ResultSet rs, Set<String> omittedColumns) {
+        Map<String, Object> map = Maps.newHashMap();
+        try {
+            final ResultSetMetaData metaData = rs.getMetaData();
+            for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                final String label = metaData.getColumnLabel(i);
+                if (!omittedColumns.contains(label)) {
+                    map.put(label, rs.getObject(i));
+                }
+            }
+            return map;
+        } catch (Exception e) {
+            throw new RowMapperException("cannot read row to model", e);
+        }
+    }
+
+    private T asObject(ResultSet rs, Set<String> omittedColumns) {
         initLabelFieldMap();
         try {
 //            final T obj = model.newInstance();

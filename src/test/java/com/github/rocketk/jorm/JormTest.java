@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
@@ -56,23 +57,22 @@ public class JormTest {
     @Test
     public void first() {
         final Optional<Employee> employee = db.query(Employee.class)
-                .where("name=?", "Mary")
+                .where("name=?", "王大锤")
                 .first();
         assertNotNull(employee);
         assertTrue(employee.isPresent());
         final Employee e = employee.get();
-//        assertNotNull(e.getName());
-//        assertNotNull(e.getGender());
-//        assertNotNull(e.getAcademicDegree());
-//        assertNotNull(e.getSalary());
-//        assertNotNull(e.getBirthDate());
-//        assertNotNull(e.getTags());
-//        assertNotNull(e.getAttributes());
-//        assertNotNull(e.getCreatedAt());
-//        assertNotNull(e.getUpdatedAt());
-//        assertNotNull(e.getProfile());
+        assertNotNull(e.getName());
+        assertNotNull(e.getGender());
+        assertNotNull(e.getAcademicDegree());
+        assertNotNull(e.getSalary());
+        assertNotNull(e.getBirthDate());
+        assertNotNull(e.getTags());
+        assertNotNull(e.getAttributes());
+        assertNotNull(e.getCreatedAt());
+        assertNotNull(e.getUpdatedAt());
+        assertNotNull(e.getProfile());
         logger.info("e: {}", e);
-
     }
 
 
@@ -114,6 +114,32 @@ public class JormTest {
         assertNotNull(employee);
         assertTrue(employee.isPresent());
         assertNull(employee.get().getAvatar());
+        logger.info("employee: {}", employee);
+    }
+
+    @Test
+    public void first_raw() {
+        final Optional<Employee> employee = db.query(Employee.class).rawSql("select * from employee where name=?", "王大锤").first();
+        logger.info("employee: {}", employee);
+    }
+
+    @Test
+    public void first_raw_map() {
+        final Optional<Map> employee = db.query(Map.class).rawSql("select * from employee where name=?", "王大锤").first();
+        logger.info("employee: {}", employee);
+    }
+
+    @Test
+    public void first_raw_customRowMapper() {
+        final Optional<Employee> employee = db.query(Employee.class)
+                .rawSql("select name, gender from employee where name=?", "王大锤")
+                .rowMapper((rs, omitted)->{
+                    final Employee e = new Employee();
+                    e.setName(rs.getString("name"));
+                    e.setGender(Gender.parse(rs.getInt("gender")));
+                    return e;
+                })
+                .first();
         logger.info("employee: {}", employee);
     }
 

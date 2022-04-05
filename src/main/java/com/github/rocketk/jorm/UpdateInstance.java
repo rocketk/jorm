@@ -22,7 +22,7 @@ import static com.github.rocketk.jorm.ReflectionUtil.shouldIgnoreWriteToDb;
  * @author pengyu
  * @date 2022/3/28
  */
-public class JormModelUpdateInstance<T> extends AbstractModelQueryInstance<T> implements ModelUpdate<T> {
+public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Update<T> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     //    private Map<String, Object> args = new HashMap<>();
@@ -31,7 +31,7 @@ public class JormModelUpdateInstance<T> extends AbstractModelQueryInstance<T> im
     private final Map<String, Object> args = Maps.newHashMap();
     private final List<String> omittedColumns = Lists.newArrayList();
 
-    public JormModelUpdateInstance(DataSource ds, Config config, Class<T> model) {
+    public UpdateInstance(DataSource ds, Config config, Class<T> model) {
         super(ds, config, model);
     }
 
@@ -50,19 +50,19 @@ public class JormModelUpdateInstance<T> extends AbstractModelQueryInstance<T> im
     }
 
     @Override
-    public ModelUpdate<T> table(String table) {
+    public Update<T> table(String table) {
         this.table = table;
         return this;
     }
 
     @Override
-    public ModelUpdate<T> omit(String... columns) {
+    public Update<T> omit(String... columns) {
         omittedColumns.addAll(Arrays.asList(columns));
         return this;
     }
 
     @Override
-    public ModelUpdate<T> obj(T obj) {
+    public Update<T> obj(T obj) {
         assert obj != null;
         this.model = (Class<T>) obj.getClass();
         final Field[] fields = this.model.getDeclaredFields();
@@ -89,7 +89,7 @@ public class JormModelUpdateInstance<T> extends AbstractModelQueryInstance<T> im
     }
 
     @Override
-    public ModelUpdate<T> value(String column, Object value) {
+    public Update<T> value(String column, Object value) {
 //        this.args.put(column, value);
 //        this.argKeys.add(column);
 //        this.argValues.add(value);
@@ -98,7 +98,7 @@ public class JormModelUpdateInstance<T> extends AbstractModelQueryInstance<T> im
     }
 
     @Override
-    public ModelUpdate<T> values(Map<String, Object> valuesMap) {
+    public Update<T> values(Map<String, Object> valuesMap) {
 //        this.args.putAll(valuesMap);
         Optional.ofNullable(valuesMap).ifPresent(m -> m.forEach(this::value));
 //        if (valuesMap != null && valuesMap.size() > 0) {

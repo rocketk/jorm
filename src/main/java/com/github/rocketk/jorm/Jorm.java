@@ -24,15 +24,11 @@ public class Jorm {
         this.config = config;
     }
 
-    public <T> ModelQuery<T> query(Class<T> model) {
-        return new JormModelQueryInstance<>(ds, config, model);
+    public <T> Query<T> query(Class<T> model) {
+        return new QueryInstance<>(ds, config, model);
     }
 
-    public <T> ModelQuery<T> rawQuery() {
-        throw new RuntimeException("not implemented");
-    }
-
-    public <T> ModelUpdate<T> update(Class<T> model) {
-        return new JormModelUpdateInstance<>(ds, config, model);
+    public <T> Update<T> update(Class<T> model) {
+        return new UpdateInstance<>(ds, config, model);
     }
 }
