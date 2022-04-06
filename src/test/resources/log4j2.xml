@@ -11,7 +11,7 @@
     </Appenders>
     <!--然后定义logger，只有定义了logger并引入的appender，appender才会生效-->
     <Loggers>
-        <Root level="INFO">
+        <Root level="DEBUG">
             <Appender-Ref ref="Console"/>
         </Root>
     </Loggers>

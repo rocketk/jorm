@@ -4,8 +4,10 @@ import com.alibaba.druid.pool.DruidDataSource;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.util.Properties;
-import java.util.ResourceBundle;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * @author pengyu
@@ -17,29 +19,33 @@ public class BaseDataTest {
     public static final String EMPLOYEE_DDL = "com/github/rocketk/databases/employee/employee-hsqldb-schema.sql";
     public static final String EMPLOYEE_DATA = "com/github/rocketk/databases/employee/employee-hsqldb-dataload.sql";
 
-//    public static DataSource createDataSource(String resource) throws IOException {
-//        final ResourceBundle bundle = ResourceBundle.getBundle(EMPLOYEE_PROPERTIES);
+    public static DruidDataSource createDataSource() throws IOException, SQLException {
+        DruidDataSource ds = new DruidDataSource();
+        ds.setDriverClassName("org.hsqldb.jdbcDriver");
+        ds.setUrl("jdbc:hsqldb:mem:aname");
+        ds.setUsername("sa");
+        ds.setPassword("");
+        ds.setInitialSize(1);
+        ds.setMinIdle(1);
+        ds.setMaxActive(1);
+        ds.setMaxWait(15000);
+        ds.init();
+//        ds.close();
+        return ds;
+    }
+
+    public static void runScript(DataSource ds, String resource) throws IOException, SQLException {
+        try(final InputStream is = FileReader.getInputStream(resource)) {
+            try (Connection connection = ds.getConnection()) {
+                ScriptRunner runner = new ScriptRunner(connection, true, true);
+                runner.runScript(new InputStreamReader(is));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 //
-//        PooledDataSource ds = new PooledDataSource();
-//        ds.setDriver(props.getProperty("driver"));
-//        ds.setUrl(props.getProperty("url"));
-//        ds.setUsername(props.getProperty("username"));
-//        ds.setPassword(props.getProperty("password"));
-//        return ds;
-//    }
-//
-//    public static void runScript(DataSource ds, String resource) throws IOException, SQLException {
-//        try (Connection connection = ds.getConnection()) {
-//            ScriptRunner runner = new ScriptRunner(connection);
-//            runner.setAutoCommit(true);
-//            runner.setStopOnError(false);
-//            runner.setLogWriter(null);
-//            runner.setErrorLogWriter(null);
-//            runScript(runner, resource);
-//        }
-//    }
-//
-//    public static void runScript(ScriptRunner runner, String resource) throws IOException, SQLException {
+//    public static void runScript(com.github.rocketk.ScriptRunner runner, String resource) throws IOException, SQLException {
 //        try (Reader reader = Resources.getResourceAsReader(resource)) {
 //            runner.runScript(reader);
 //        }

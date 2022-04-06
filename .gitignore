@@ -27,5 +27,6 @@ nbdist/
 .DS_Store
 
 deploy/
+deploy.sh
 
 src/test/java/com/github/rocketk/jorm/oracle

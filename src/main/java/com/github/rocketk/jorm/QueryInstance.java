@@ -3,6 +3,7 @@ package com.github.rocketk.jorm;
 import com.github.rocketk.jorm.conf.Config;
 import com.github.rocketk.jorm.dialect.Dialect;
 import com.github.rocketk.jorm.mapper.row.RowMapper;
+import com.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +44,11 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
         super(ds, config, model);
     }
 
-//    public JormModelQueryInstance(DataSource ds) {
+    public QueryInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
+        super(ds, config, model, rowMapperFactory);
+    }
+
+    //    public JormModelQueryInstance(DataSource ds) {
 //        this.ds = ds;
 //        this.config = defaultConfig();
 //    }
@@ -125,7 +130,7 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
 
     @Override
     public Query<T> dialect(Dialect dialect) {
-        this.dialect = dialect;
+        this.config.setDialect(dialect);
         return this;
     }
 
@@ -137,17 +142,28 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
 
     @Override
     public Optional<T> first() {
+//        final long t0 = System.currentTimeMillis();
         init();
         this.limit = 1;
         final String sql = this.buildQuerySql();
         if (this.config.isPrintSql()) {
             logger.info("exec sql: \"{}\", args: \"{}\"", sql, args);
         }
+//        final long t1 = System.currentTimeMillis();
+//        logger.info("buildQuerySql cost: {} ms", t1 - t0);
         try (final Connection conn = this.ds.getConnection();
              final PreparedStatement ps = conn.prepareStatement(sql)) {
+//            final long t2 = System.currentTimeMillis();
+//            logger.info("prepareStatement cost: {} ms", t2 - t1);
             setArgs(ps, args);
+//            final long t3 = System.currentTimeMillis();
+//            logger.info("setArgs cost: {} ms", t3 - t2);
             try (final ResultSet rs = ps.executeQuery()) {
+//                final long t4 = System.currentTimeMillis();
+//                logger.info("executeQuery cost: {} ms", t4 - t3);
                 final T obj = parseResultSetToSingleObject(rs);
+//                final long t5 = System.currentTimeMillis();
+//                logger.info("parseResultSetToSingleObject cost: {} ms", t5 - t4);
                 return Optional.ofNullable(obj);
             } catch (SQLException e) {
                 throw e;
@@ -156,6 +172,9 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
             logger.error("an error occurred while executing sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}",
                     sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
             throw new JormQueryException(e);
+        } finally {
+//            final long cost = System.currentTimeMillis() - t0;
+//            logger.info("total cost: {} ms", cost);
         }
 
     }
@@ -296,20 +315,39 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
     }
 
     private void appendLimitAndOffset(StringBuilder sql) {
-        if (Dialect.STANDARD.equals(this.dialect)) {
-            if (this.limit != null) {
-                sql.append(" limit ").append(this.limit).append(" ");
-            }
-            if (this.offset != null) {
-                sql.append(" offset ").append(this.offset).append(" ");
-            }
+        if (config.getDialect() == null) {
+            appendLimitAndOffsetForStandard(sql);
             return;
         }
+        switch (config.getDialect()) {
+            case STANDARD:
+                appendLimitAndOffsetForStandard(sql);
+                break;
+            case MYSQL:
+                appendLimitAndOffsetForMysql(sql);
+                break;
+            default:
+                logger.warn("unknown dialect: {}, handled as STANDARD", config.getDialect());
+                appendLimitAndOffsetForStandard(sql);
+                break;
+        }
+    }
+
+    private void appendLimitAndOffsetForStandard(StringBuilder sql) {
         if (offset != null) {
             sql.append(" offset ").append(offset);
         }
         if (limit != null) {
             sql.append(" fetch first ").append(limit).append(" rows only");
+        }
+    }
+
+    private void appendLimitAndOffsetForMysql(StringBuilder sql) {
+        if (limit != null) {
+            sql.append(" limit ").append(limit).append(" ");
+        }
+        if (offset != null) {
+            sql.append(" offset ").append(offset).append(" ");
         }
     }
 }

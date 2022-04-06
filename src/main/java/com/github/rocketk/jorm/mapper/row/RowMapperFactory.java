@@ -6,5 +6,5 @@ package com.github.rocketk.jorm.mapper.row;
  */
 @FunctionalInterface
 public interface RowMapperFactory {
-    <T> RowMapper<T> createRowMapper(Class<T> model);
+    <T> RowMapper<T> getRowMapper(Class<T> model);
 }

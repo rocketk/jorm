@@ -2,10 +2,11 @@ package com.github.rocketk.jorm;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.github.rocketk.AcademicDegree;
-import com.github.rocketk.Employee;
-import com.github.rocketk.Gender;
+import com.github.rocketk.data.Employee;
+import com.github.rocketk.data.Gender;
 import com.github.rocketk.jorm.conf.Config;
 import com.github.rocketk.jorm.conf.ConfigFactory;
+import com.github.rocketk.jorm.dialect.Dialect;
 import com.google.common.collect.Lists;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -25,7 +26,7 @@ import static org.junit.Assert.*;
  * @author pengyu
  * @date 2022/3/24
  */
-public class JormTest {
+public class JormMysqlTest {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static DruidDataSource ds;
     private static Jorm db;
@@ -43,7 +44,8 @@ public class JormTest {
         ds.setDriverClassName("com.mysql.cj.jdbc.Driver");
         ds.init();
         final Config config = ConfigFactory.defaultConfig();
-        config.setPrintSql(false);
+        config.setPrintSql(true);
+        config.setDialect(Dialect.MYSQL);
         db = new Jorm(ds, config);
     }
 
@@ -79,7 +81,7 @@ public class JormTest {
     @Test
     public void first_performance() {
         final long t0 = System.currentTimeMillis();
-        final int n = 1000;
+        final int n = 5;
         for (int i = 0; i < n; i++) {
             final Optional<Employee> employee = db.query(Employee.class)
                     .where("name=?", "王大锤")
@@ -125,7 +127,7 @@ public class JormTest {
 
     @Test
     public void first_raw_map() {
-        final Optional<Map> employee = db.query(Map.class).rawSql("select * from employee where name=?", "王大锤").first();
+        final Optional<Map> employee = db.queryMap().rawSql("select * from employee where name=?", "王大锤").first();
         logger.info("employee: {}", employee);
     }
 
@@ -133,7 +135,7 @@ public class JormTest {
     public void first_raw_customRowMapper() {
         final Optional<Employee> employee = db.query(Employee.class)
                 .rawSql("select name, gender from employee where name=?", "王大锤")
-                .rowMapper((rs, omitted)->{
+                .rowMapper((rs, omitted) -> {
                     final Employee e = new Employee();
                     e.setName(rs.getString("name"));
                     e.setGender(Gender.parse(rs.getInt("gender")));
@@ -151,6 +153,20 @@ public class JormTest {
                 .orderBy("name desc")
                 .find();
         logger.info("list: {}", list);
+    }
+
+    @Test
+    public void count() {
+        final long count = db.query(Employee.class)
+                .count();
+        logger.info("count: {}", count);
+        assertTrue(count > 1);
+
+        final long count1 = db.query(Employee.class)
+                .where("name=?", "王大锤")
+                .count();
+        logger.info("count1: {}", count1);
+        assertEquals(1, count1);
     }
 
     @Test

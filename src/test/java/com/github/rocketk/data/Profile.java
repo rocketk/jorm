@@ -1,12 +1,14 @@
-package com.github.rocketk;
+package com.github.rocketk.data;
 
+import com.github.rocketk.jorm.anno.JormJsonObject;
 import com.google.common.base.MoreObjects;
 
 /**
  * @author pengyu
  * @date 2022/3/29
  */
-public class ProfileWithoutAnnotation {
+@JormJsonObject
+public class Profile {
     private String fullName;
     private String email;
     private String bio;

@@ -179,4 +179,8 @@ public class JdbcUtil {
 //        throw new JormQueryException("unsupported argument type " + arg.getClass().getCanonicalName());
         return false;
     }
+
+    public static void executeUpdateBatch(PreparedStatement ps) {
+
+    }
 }

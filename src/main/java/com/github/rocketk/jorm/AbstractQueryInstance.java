@@ -2,7 +2,6 @@ package com.github.rocketk.jorm;
 
 import com.github.rocketk.jorm.anno.JormCustomEnum;
 import com.github.rocketk.jorm.conf.Config;
-import com.github.rocketk.jorm.dialect.Dialect;
 import com.github.rocketk.jorm.json.JsonMapper;
 import com.github.rocketk.jorm.json.JsonMapperFactory;
 import com.github.rocketk.jorm.mapper.column.ColumnFieldNameMapper;
@@ -14,7 +13,6 @@ import com.github.rocketk.jorm.mapper.row.RowMapper;
 import com.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import com.github.rocketk.jorm.mapper.table.SnakeUpperTableModelNameMapper;
 import com.github.rocketk.jorm.mapper.table.TableModelNameMapper;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.sql.DataSource;
@@ -44,16 +42,23 @@ public abstract class AbstractQueryInstance<T> {
 
     protected String rawSql;
     protected Object[] args;
-    protected Dialect dialect = Dialect.STANDARD;
 
     public AbstractQueryInstance(DataSource ds, Config config, Class<T> model) {
         this.ds = ds;
         this.config = config;
         this.model = model;
+        initRowMapperFactory();
+    }
+
+    public AbstractQueryInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
+        this.ds = ds;
+        this.config = config;
+        this.model = model;
+        this.rowMapperFactory = rowMapperFactory;
     }
 
     protected void init() {
-        initRowMapperFactory();
+//        initRowMapperFactory();
         initTableName();
         initRowMapper();
         initJsonMapper();
@@ -69,7 +74,9 @@ public abstract class AbstractQueryInstance<T> {
     }
 
     protected void initRowMapperFactory() {
-        rowMapperFactory = new DefaultRowMapperFactory(config.getArrayDelimiter(), config.getJsonProvider());
+        if (rowMapperFactory == null) {
+            rowMapperFactory = new DefaultRowMapperFactory(config.getArrayDelimiter(), config.getJsonProvider());
+        }
     }
 
     protected void initTableName() {
@@ -96,7 +103,7 @@ public abstract class AbstractQueryInstance<T> {
             if (model == null) {
                 throw new JormQueryException("either rowMapper or model is required");
             }
-            rowMapper = rowMapperFactory.createRowMapper(model);
+            rowMapper = rowMapperFactory.getRowMapper(model);
         }
     }
 

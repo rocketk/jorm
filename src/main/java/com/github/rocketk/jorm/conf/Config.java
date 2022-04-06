@@ -1,23 +1,30 @@
 package com.github.rocketk.jorm.conf;
 
+import com.github.rocketk.jorm.dialect.Dialect;
+import com.github.rocketk.jorm.json.JsonProvider;
+
+import static com.github.rocketk.jorm.json.JsonProvider.JACKSON;
+
 /**
  * @author pengyu
  * @date 2022/3/24
  */
 public class Config {
-    public static final String JACKSON = "jackson";
-    public static final String GSON = "gson";
-    public static final String FASTJSON = "fastjson";
+//    public static final String JACKSON = "jackson";
+//    public static final String GSON = "gson";
+//    public static final String FASTJSON = "fastjson";
     /**
      * 数组分隔符，用来将数据库列中的字符串值分隔成Java中的字符串数组对象
      */
-    private String arrayDelimiter;
+    private String arrayDelimiter = " ";
     /**
      * 使用何种JSON序列化器
      * jackson, gson, fastjson
      */
-    private String jsonProvider;
-    private boolean printSql;
+    private JsonProvider jsonProvider = JACKSON;
+    private boolean printSql = true;
+    private Dialect dialect = Dialect.STANDARD;
+
 
     public String getArrayDelimiter() {
         return arrayDelimiter;
@@ -27,11 +34,11 @@ public class Config {
         this.arrayDelimiter = arrayDelimiter;
     }
 
-    public String getJsonProvider() {
+    public JsonProvider getJsonProvider() {
         return jsonProvider;
     }
 
-    public void setJsonProvider(String jsonProvider) {
+    public void setJsonProvider(JsonProvider jsonProvider) {
         this.jsonProvider = jsonProvider;
     }
 
@@ -41,5 +48,13 @@ public class Config {
 
     public void setPrintSql(boolean printSql) {
         this.printSql = printSql;
+    }
+
+    public Dialect getDialect() {
+        return dialect;
+    }
+
+    public void setDialect(Dialect dialect) {
+        this.dialect = dialect;
     }
 }

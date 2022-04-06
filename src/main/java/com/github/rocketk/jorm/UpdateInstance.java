@@ -1,6 +1,7 @@
 package com.github.rocketk.jorm;
 
 import com.github.rocketk.jorm.conf.Config;
+import com.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
@@ -30,9 +31,14 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
     private final List<Object> argValues = Lists.newArrayList();
     private final Map<String, Object> args = Maps.newHashMap();
     private final List<String> omittedColumns = Lists.newArrayList();
+    private T object;
 
     public UpdateInstance(DataSource ds, Config config, Class<T> model) {
         super(ds, config, model);
+    }
+
+    public UpdateInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
+        super(ds, config, model, rowMapperFactory);
     }
 
     @Override
@@ -42,11 +48,38 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
     }
 
     private void initArgs() {
+        initObject();
         omittedColumns.forEach(args::remove);
         args.forEach((k, v) -> {
             argKeys.add(k);
             argValues.add(v);
         });
+    }
+
+    private void initObject() {
+        if (this.object == null) {
+            return;
+        }
+        final Field[] fields = this.model.getDeclaredFields();
+        for (Field f : fields) {
+            f.setAccessible(true);
+            if (shouldIgnoreWriteToDb(f)) {
+                continue;
+            }
+            String columnName = columnName(f);
+            if (StringUtils.isBlank(columnName)) {
+                columnName = this.columnFieldNameMapper.fieldNameToColumnName(f.getName());
+            }
+            try {
+                final Object value = f.get(this.object);
+//                this.argKeys.add(columnName);
+//                this.argValues.add(value);
+                this.args.put(columnName, value);
+            } catch (IllegalAccessException e) {
+                logger.error(e.getMessage(), e);
+                throw new JormQueryException(e);
+            }
+        }
     }
 
     @Override
@@ -63,28 +96,8 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
 
     @Override
     public Update<T> obj(T obj) {
-        assert obj != null;
         this.model = (Class<T>) obj.getClass();
-        final Field[] fields = this.model.getDeclaredFields();
-        for (Field f : fields) {
-            f.setAccessible(true);
-            if (shouldIgnoreWriteToDb(f)) {
-                continue;
-            }
-            String columnName = columnName(f);
-            if (StringUtils.isBlank(columnName)) {
-                columnName = this.columnFieldNameMapper.fieldNameToColumnName(f.getName());
-            }
-            try {
-                final Object value = f.get(obj);
-//                this.argKeys.add(columnName);
-//                this.argValues.add(value);
-                this.args.put(columnName, value);
-            } catch (IllegalAccessException e) {
-                logger.error(e.getMessage(), e);
-                throw new JormQueryException(e);
-            }
-        }
+        this.object = obj;
         return this;
     }
 

@@ -14,6 +14,12 @@ import java.lang.reflect.Method;
  * @date 2022/3/28
  */
 public class ReflectionUtil {
+
+//    private final Cache<Class, String> tableNameCache = CacheBuilder.newBuilder()
+//            .maximumSize(1000)
+//            .expireAfterWrite(60,TimeUnit.MINUTES)
+//            .build();
+
     public static <T> boolean hasField(Class<T> model, String fieldName) {
         try {
             final Field f = model.getDeclaredField(fieldName);
@@ -37,6 +43,21 @@ public class ReflectionUtil {
             return t.deletedAtColumn();
         }
         return "deleted_at";
+    }
+
+    public static <T> String createdAtColumn(Class<T> model) {
+        final JormTable t = model.getAnnotation(JormTable.class);
+        if (t != null) {
+            return t.createdAtColumn();
+        }
+        return "created_at";
+    }
+    public static <T> String updatedAtColumn(Class<T> model) {
+        final JormTable t = model.getAnnotation(JormTable.class);
+        if (t != null) {
+            return t.updatedAtColumn();
+        }
+        return "updated_at";
     }
 
     public static <T> boolean onlyFindNonDeletedByAnnotation(Class<T> model) {

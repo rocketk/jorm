@@ -1,4 +1,4 @@
-package com.github.rocketk;
+package com.github.rocketk.data;
 
 import com.github.rocketk.jorm.anno.JormCustomEnum;
 

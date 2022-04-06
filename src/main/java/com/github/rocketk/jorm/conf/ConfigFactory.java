@@ -1,6 +1,7 @@
 package com.github.rocketk.jorm.conf;
 
-import static com.github.rocketk.jorm.conf.Config.JACKSON;
+
+import static com.github.rocketk.jorm.json.JsonProvider.JACKSON;
 
 /**
  * @author pengyu
