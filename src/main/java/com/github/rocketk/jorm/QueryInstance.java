@@ -20,8 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.github.rocketk.jorm.ReflectionUtil.deletedAtColumn;
-import static com.github.rocketk.jorm.ReflectionUtil.onlyFindNonDeletedByAnnotation;
+import static com.github.rocketk.jorm.util.ReflectionUtil.deletedAtColumn;
 
 /**
  * @author pengyu
@@ -32,13 +31,14 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
     private Set<String> selectedColumns = Sets.newHashSet();
     private Set<String> omittedColumns = Sets.newHashSet();
     private String whereClause;
+    protected Object[] args;
     //    private List<Object> whereClauseArgs = new ArrayList<>();
     private String orderByClause;
     private Integer limit;
     private Integer offset;
     private boolean count;
 
-    private boolean findDeleted;
+    private boolean findDeletedRows;
 
     public QueryInstance(DataSource ds, Config config, Class<T> model) {
         super(ds, config, model);
@@ -135,8 +135,8 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
     }
 
     @Override
-    public Query<T> shouldFindDeleted(boolean findDeleted) {
-        this.findDeleted = findDeleted;
+    public Query<T> shouldFindDeletedRows(boolean findDeleted) {
+        this.findDeletedRows = findDeleted;
         return this;
     }
 
@@ -226,12 +226,12 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
         }
     }
 
-    private boolean onlyFindNonDeleted() {
-        if (this.findDeleted) {
-            return false;
-        }
-        return onlyFindNonDeletedByAnnotation(this.model);
-    }
+//    private boolean onlyFindNonDeleted() {
+//        if (this.findDeletedRows) {
+//            return false;
+//        }
+//        return onlyFindNonDeletedByAnnotation(this.model);
+//    }
 
     private String buildQuerySql() {
         if (StringUtils.isNotBlank(this.rawSql)) {
@@ -246,18 +246,7 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
         }
         sql.append(" from ").append(this.table).append(" ");
         // where?
-        final boolean _onlyFindNonDeleted = onlyFindNonDeleted();
-        if (_onlyFindNonDeleted) {
-            sql.append(" where ").append(deletedAtColumn(this.model)).append(" is null").append(" ");
-        }
-        if (this.whereClause != null) {
-            if (_onlyFindNonDeleted) {
-                sql.append(" and ");
-            } else {
-                sql.append(" where ");
-            }
-            sql.append(whereClause).append(" ");
-        }
+        appendWhereClause(findDeletedRows, sql, whereClause);
         if (this.orderByClause != null) {
             sql.append(" order by ").append(orderByClause).append(" ");
         }

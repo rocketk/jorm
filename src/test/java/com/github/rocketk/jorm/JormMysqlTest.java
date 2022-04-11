@@ -59,7 +59,7 @@ public class JormMysqlTest {
     @Test
     public void first() {
         final Optional<Employee> employee = db.query(Employee.class)
-                .where("name=?", "王大锤")
+                .where("name=?", "赵今麦")
                 .first();
         assertNotNull(employee);
         assertTrue(employee.isPresent());
@@ -70,10 +70,10 @@ public class JormMysqlTest {
         assertNotNull(e.getSalary());
         assertNotNull(e.getBirthDate());
         assertNotNull(e.getTags());
-        assertNotNull(e.getAttributes());
+        assertNull(e.getAttributes());
         assertNotNull(e.getCreatedAt());
         assertNotNull(e.getUpdatedAt());
-        assertNotNull(e.getProfile());
+        assertNull(e.getProfile());
         logger.info("e: {}", e);
     }
 
@@ -84,7 +84,7 @@ public class JormMysqlTest {
         final int n = 5;
         for (int i = 0; i < n; i++) {
             final Optional<Employee> employee = db.query(Employee.class)
-                    .where("name=?", "王大锤")
+                    .where("name=?", "赵今麦")
                     .first();
         }
         final long costs = System.currentTimeMillis() - t0;
@@ -121,20 +121,20 @@ public class JormMysqlTest {
 
     @Test
     public void first_raw() {
-        final Optional<Employee> employee = db.query(Employee.class).rawSql("select * from employee where name=?", "王大锤").first();
+        final Optional<Employee> employee = db.query(Employee.class).rawSql("select * from employee where name=?", "赵今麦").first();
         logger.info("employee: {}", employee);
     }
 
     @Test
     public void first_raw_map() {
-        final Optional<Map> employee = db.queryMap().rawSql("select * from employee where name=?", "王大锤").first();
+        final Optional<Map> employee = db.queryMap().rawSql("select * from employee where name=?", "赵今麦").first();
         logger.info("employee: {}", employee);
     }
 
     @Test
     public void first_raw_customRowMapper() {
         final Optional<Employee> employee = db.query(Employee.class)
-                .rawSql("select name, gender from employee where name=?", "王大锤")
+                .rawSql("select name, gender from employee where name=?", "赵今麦")
                 .rowMapper((rs, omitted) -> {
                     final Employee e = new Employee();
                     e.setName(rs.getString("name"));
@@ -163,7 +163,7 @@ public class JormMysqlTest {
         assertTrue(count > 1);
 
         final long count1 = db.query(Employee.class)
-                .where("name=?", "王大锤")
+                .where("name=?", "赵今麦")
                 .count();
         logger.info("count1: {}", count1);
         assertEquals(1, count1);
@@ -173,9 +173,9 @@ public class JormMysqlTest {
     public void insert() {
         final Date now = new Date();
         final boolean success = db.update(Employee.class)
-                .value("name", "柯达")
-                .value("created_at", now)
-                .value("updated_at", now)
+                .set("name", "柯达")
+                .set("created_at", now)
+                .set("updated_at", now)
                 .execInsert();
         assertTrue(success);
     }
@@ -185,9 +185,9 @@ public class JormMysqlTest {
         final Date now = new Date();
         try {
             final long pk = db.update(Employee.class)
-                    .value("name", "柯达")
-                    .value("created_at", now)
-                    .value("updated_at", now)
+                    .set("name", "柯达")
+                    .set("created_at", now)
+                    .set("updated_at", now)
                     .execInsertAndReturnFirstKey();
             assertTrue(pk > 0);
             logger.info("generated pk: {}", pk);
@@ -205,8 +205,8 @@ public class JormMysqlTest {
         employee.setAcademicDegree(AcademicDegree.MASTER);
         employee.setTags(new String[]{"admin leader"});
         employee.setLanguages(Lists.newArrayList("java go rust"));
-        employee.setUpdatedAt(now);
-        employee.setCreatedAt(now);
+//        employee.setUpdatedAt(now);
+//        employee.setCreatedAt(now);
         try {
             final long pk = db.update(Employee.class)
                     .obj(employee)
@@ -214,6 +214,12 @@ public class JormMysqlTest {
                     .execInsertAndReturnFirstKey();
             assertTrue(pk > 0);
             logger.info("generated pk: {}", pk);
+
+            final Optional<Employee> retrieved = db.query(Employee.class).where("pk=?", pk).first();
+            assertTrue(retrieved.isPresent());
+            final Employee retrievedEmployee = retrieved.get();
+            assertNotNull(retrievedEmployee.getCreatedAt());
+            assertNotNull(retrievedEmployee.getUpdatedAt());
         } catch (Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -225,9 +231,9 @@ public class JormMysqlTest {
         final Date now = new Date();
         try {
             final long[] keys = db.update(Employee.class)
-                    .value("name", "柯达")
-                    .value("created_at", now)
-                    .value("updated_at", now)
+                    .set("name", "柯达")
+                    .set("created_at", now)
+                    .set("updated_at", now)
                     .execInsertAndReturnKeys();
             assertTrue(keys.length > 0);
             logger.info("generated keys: {}", keys);

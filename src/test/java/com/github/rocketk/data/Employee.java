@@ -6,15 +6,13 @@ import com.github.rocketk.jorm.anno.JormTable;
 import com.google.common.base.MoreObjects;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author pengyu
  * @date 2021/12/12
  */
-@JormTable(name = "employee")
+@JormTable(name = "employee", autoGenerateCreatedAt = true, autoGenerateUpdatedAt = true)
 public class Employee {
     private long pk;
     private String name;
@@ -157,27 +155,7 @@ public class Employee {
         this.profile = profile;
     }
 
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("pk", pk)
-                .add("name", name)
-                .add("gender", gender)
-                .add("academicDegree", academicDegree)
-                .add("salary", salary)
-                .add("tags", tags)
-                .add("languages", languages)
-                .add("attributes", attributes)
-                .add("duringInternship", duringInternship)
-                .add("avatar", avatar)
-                .add("birthDate", birthDate)
-                .add("profile", profile)
-                .add("createdAt", createdAt)
-                .add("updatedAt", updatedAt)
-                .add("deletedAt", deletedAt)
-                .add("secret", secret)
-                .toString();
-    }
+
 
     public List<String> getLanguages() {
         return languages;
@@ -186,4 +164,28 @@ public class Employee {
     public void setLanguages(List<String> languages) {
         this.languages = languages;
     }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", Employee.class.getSimpleName() + "[", "]")
+                .add("pk=" + pk)
+                .add("name='" + name + "'")
+                .add("gender=" + gender)
+                .add("academicDegree=" + academicDegree)
+                .add("salary=" + salary)
+                .add("tags=" + Arrays.toString(tags))
+                .add("languages=" + languages)
+                .add("attributes=" + attributes)
+                .add("duringInternship=" + duringInternship)
+                .add("avatar=" + Arrays.toString(avatar))
+                .add("birthDate=" + birthDate)
+                .add("profile=" + profile)
+                .add("createdAt=" + createdAt)
+                .add("updatedAt=" + updatedAt)
+                .add("deletedAt=" + deletedAt)
+                .add("secret='" + secret + "'")
+                .toString();
+    }
+
+
 }

@@ -19,7 +19,7 @@ public class BaseDataTest {
     public static final String EMPLOYEE_DDL = "com/github/rocketk/databases/employee/employee-hsqldb-schema.sql";
     public static final String EMPLOYEE_DATA = "com/github/rocketk/databases/employee/employee-hsqldb-dataload.sql";
 
-    public static DruidDataSource createDataSource() throws IOException, SQLException {
+    public static DruidDataSource createDataSourceForHsqlDb() throws IOException, SQLException {
         DruidDataSource ds = new DruidDataSource();
         ds.setDriverClassName("org.hsqldb.jdbcDriver");
         ds.setUrl("jdbc:hsqldb:mem:aname");

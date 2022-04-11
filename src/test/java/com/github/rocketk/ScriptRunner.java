@@ -1,8 +1,5 @@
-package com.github.rocketk;/*
- * Slightly modified version of the com.ibatis.common.jdbc.com.github.rocketk.ScriptRunner class
- * from the iBATIS Apache project. Only removed dependency on Resource class
- * and a constructor
- */
+package com.github.rocketk;
+
 /*
  *  Copyright 2004 Clinton Begin
  *

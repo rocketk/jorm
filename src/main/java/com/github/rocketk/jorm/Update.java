@@ -15,13 +15,21 @@ public interface Update<T> {
 
     Update<T> obj(@Nullable T obj);
 
-    Update<T> value(String column, Object value);
+    Update<T> set(String column, Object value);
 
-    Update<T> values(Map<String, Object> valuesMap);
+    Update<T> set(Map<String, Object> valuesMap);
+
+    Update<T> where(String whereClause, Object... args);
+
+    Update<T> ignoreNoWhereClauseWarning(boolean ignoreNoWhereClauseWarning);
+
+    Update<T> shouldUpdateDeletedRows(boolean updateDeleted);
 
     boolean execInsert();
+
     long execInsertAndReturnFirstKey();
+
     long[] execInsertAndReturnKeys();
 
-    boolean execUpdate();
+    long execUpdate();
 }

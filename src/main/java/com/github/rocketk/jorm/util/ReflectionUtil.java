@@ -1,33 +1,38 @@
-package com.github.rocketk.jorm;
+package com.github.rocketk.jorm.util;
 
 import com.github.rocketk.jorm.anno.JormColumn;
 import com.github.rocketk.jorm.anno.JormIgnore;
 import com.github.rocketk.jorm.anno.JormJsonObject;
 import com.github.rocketk.jorm.anno.JormTable;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author pengyu
  * @date 2022/3/28
  */
 public class ReflectionUtil {
-
+    private final static Logger logger = LoggerFactory.getLogger(ReflectionUtil.class);
 //    private final Cache<Class, String> tableNameCache = CacheBuilder.newBuilder()
 //            .maximumSize(1000)
 //            .expireAfterWrite(60,TimeUnit.MINUTES)
 //            .build();
 
-    public static <T> boolean hasField(Class<T> model, String fieldName) {
-        try {
-            final Field f = model.getDeclaredField(fieldName);
-            return true;
-        } catch (NoSuchFieldException e) {
-            return false;
-        }
-    }
+//    public static <T> boolean hasField(Class<T> model, String fieldName) {
+//        try {
+//            final Field f = model.getDeclaredField(fieldName);
+//            return true;
+//        } catch (NoSuchFieldException e) {
+//            return false;
+//        }
+//    }
 
     public static <T> String tableName(Class<T> model) {
         final JormTable t = model.getAnnotation(JormTable.class);
@@ -37,36 +42,72 @@ public class ReflectionUtil {
         return null;
     }
 
-    public static <T> String deletedAtColumn(Class<T> model) {
+    public static <T> Optional<String> deletedAtColumn(Class<T> model) {
         final JormTable t = model.getAnnotation(JormTable.class);
-        if (t != null) {
-            return t.deletedAtColumn();
+        if (t != null && t.onlyFindNonDeleted() && StringUtils.isNotBlank(t.deletedAtColumn())) {
+            return Optional.of(t.deletedAtColumn());
         }
-        return "deleted_at";
+        return Optional.empty();
     }
 
-    public static <T> String createdAtColumn(Class<T> model) {
+    public static <T> Optional<String> createdAtColumn(Class<T> model) {
         final JormTable t = model.getAnnotation(JormTable.class);
-        if (t != null) {
-            return t.createdAtColumn();
-        }
-        return "created_at";
-    }
-    public static <T> String updatedAtColumn(Class<T> model) {
-        final JormTable t = model.getAnnotation(JormTable.class);
-        if (t != null) {
-            return t.updatedAtColumn();
-        }
-        return "updated_at";
+        return Optional.ofNullable(t.autoGenerateCreatedAt() ? t.createdAtColumn() : null);
     }
 
-    public static <T> boolean onlyFindNonDeletedByAnnotation(Class<T> model) {
+    public static <T> Optional<String> updatedAtColumn(Class<T> model) {
         final JormTable t = model.getAnnotation(JormTable.class);
-        if (t != null) {
-            return t.onlyFindNonDeleted();
-        }
-        return hasField(model, "deletedAt");
+        return Optional.ofNullable(t.autoGenerateUpdatedAt() ? t.updatedAtColumn() : null);
     }
+
+//    public static <T> void setupCreatedAt(T object) {
+//        final Class<?> model = object.getClass();
+//        final JormTable t = model.getAnnotation(JormTable.class);
+//        if (t == null || !t.autoGenerateCreatedAt()) {
+//            return;
+//        }
+//        try {
+//            final Field field = model.getDeclaredField(t.createdAtField());
+//            setupFieldValue(object, field);
+//        } catch (NoSuchFieldException e) {
+//            logger.error("no such field for {}", t.createdAtField());
+//        } catch (IllegalAccessException e) {
+//            logger.error("failed to set new Date() to createdAt field, caused by: {}", e.getMessage());
+//        }
+//    }
+//
+//    public static <T> void setupUpdatedAt(T object) {
+//        final Class<?> model = object.getClass();
+//        final JormTable t = model.getAnnotation(JormTable.class);
+//        if (t == null || !t.autoGenerateUpdatedAt()) {
+//            return;
+//        }
+//        try {
+//            final Field field = model.getDeclaredField(t.updatedAtField());
+//            setupFieldValue(object, field);
+//        } catch (NoSuchFieldException e) {
+//            logger.error("no such field for {}", t.updatedAtField());
+//        } catch (IllegalAccessException e) {
+//            logger.error("failed to set new Date() to updatedAt field, caused by: {}", e.getMessage());
+//        }
+//    }
+
+//    private static <T> void setupFieldValue(T object, Field field) throws IllegalAccessException {
+//        field.setAccessible(true);
+//        final Class<?> type = field.getType();
+//        if (!Date.class.isAssignableFrom(type)) {
+//            throw new IllegalArgumentException("type of Date is not assignable from the type of field " + type.getCanonicalName());
+//        }
+//        if (field.get(object) == null) {
+//            field.set(object, new Date());
+//        }
+//    }
+
+
+//    public static <T> boolean onlyFindNonDeletedByAnnotation(Class<T> model) {
+//        final JormTable t = model.getAnnotation(JormTable.class);
+//        return t != null && t.onlyFindNonDeleted();
+//    }
 
     public static String columnName(Field field) {
         final JormColumn column = field.getAnnotation(JormColumn.class);
@@ -76,12 +117,15 @@ public class ReflectionUtil {
         return null;
     }
 
-    public static boolean shouldUseJson(Class<?> object) {
+    public static boolean shouldUseJson(Class<?> type) {
 //        final JormColumn column = field.getAnnotation(JormColumn.class);
 //        if (column != null) {
 //            return column.jsonField();
 //        }
-        final JormJsonObject jsonAnnotation = object.getAnnotation(JormJsonObject.class);
+        if (Map.class.isAssignableFrom(type)) {
+            return true;
+        }
+        final JormJsonObject jsonAnnotation = type.getAnnotation(JormJsonObject.class);
         return jsonAnnotation != null;
     }
 

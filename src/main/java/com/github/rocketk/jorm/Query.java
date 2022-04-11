@@ -38,7 +38,7 @@ public interface Query<T> {
 
     Query<T> dialect(Dialect dialect);
 
-    Query<T> shouldFindDeleted(boolean findDeleted);
+    Query<T> shouldFindDeletedRows(boolean findDeleted);
 
     Optional<T> first();
 

@@ -20,19 +20,13 @@ public @interface JormTable {
 
     boolean softDelete() default true;
 
-    String deletedAtField() default "deletedAt";
-
     String deletedAtColumn() default "deleted_at";
 
-    boolean autoGenerateCreatedAt() default true;
-
-    String createdAtField() default "createdAt";
+    boolean autoGenerateCreatedAt() default false;
 
     String createdAtColumn() default "created_at";
 
-    boolean autoGenerateUpdatedAt() default true;
-
-    String updatedAtField() default "updatedAt";
+    boolean autoGenerateUpdatedAt() default false;
 
     String updatedAtColumn() default "updated_at";
 

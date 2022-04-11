@@ -19,9 +19,10 @@ import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
-import static com.github.rocketk.jorm.JdbcUtil.setBaseTypeArg;
-import static com.github.rocketk.jorm.ReflectionUtil.*;
+import static com.github.rocketk.jorm.util.JdbcUtil.setArgWithoutConversion;
+import static com.github.rocketk.jorm.util.ReflectionUtil.*;
 
 
 /**
@@ -41,7 +42,6 @@ public abstract class AbstractQueryInstance<T> {
     protected String table;
 
     protected String rawSql;
-    protected Object[] args;
 
     public AbstractQueryInstance(DataSource ds, Config config, Class<T> model) {
         this.ds = ds;
@@ -120,7 +120,7 @@ public abstract class AbstractQueryInstance<T> {
             for (int i = 0; i < args.length; i++) {
                 final Object arg = args[i];
                 final int parameterIndex = i + 1;
-                if (setBaseTypeArg(ps, parameterIndex, arg)) {
+                if (setArgWithoutConversion(ps, parameterIndex, arg)) {
                     continue;
                 }
                 final Class<?> argType = arg.getClass();
@@ -132,17 +132,13 @@ public abstract class AbstractQueryInstance<T> {
                         ps.setString(parameterIndex, enumObj.name());
                     } else {
                         final Object value = getValueForCustomEnum(enumObj, customEnum.valueMethod());
-                        if (!setBaseTypeArg(ps, parameterIndex, value)) {
+                        if (!setArgWithoutConversion(ps, parameterIndex, value)) {
                             throw new IllegalArgumentException("unsupported type of argument for PreparedStatement: " + value);
                         }
                     }
                     continue;
                 }
-                if (argType.isArray()) {
-                    ps.setString(parameterIndex, stringArrayColumnFieldMapper.fieldToColumn(arg));
-                    continue;
-                }
-                if (List.class.isAssignableFrom(argType)) {
+                if (argType.isArray() || List.class.isAssignableFrom(argType)) {
                     ps.setString(parameterIndex, stringArrayColumnFieldMapper.fieldToColumn(arg));
                     continue;
                 }
@@ -150,6 +146,7 @@ public abstract class AbstractQueryInstance<T> {
                     ps.setString(parameterIndex, jsonMapper.marshal(arg));
                     continue;
                 }
+
                 throw new JormQueryException("unsupported type for setting argument: " + argType.getCanonicalName());
             }
         } catch (SQLException e) {
@@ -157,5 +154,18 @@ public abstract class AbstractQueryInstance<T> {
         }
     }
 
+    protected void appendWhereClause(boolean findDeletedRows, StringBuilder sql, String whereClause) {
+        String whereKeyword = " where ";
+        if (findDeletedRows) {
+            final Optional<String> deletedAtColumnName = deletedAtColumn(model);
+            if (deletedAtColumnName.isPresent()) {
+                sql.append(" where ").append(deletedAtColumnName).append(" is null ");
+                whereKeyword = " and ";
+            }
+        }
+        if (StringUtils.isNotBlank(whereClause)) {
+            sql.append(whereKeyword).append(whereClause).append(" ");
+        }
+    }
 
 }

@@ -1,5 +1,8 @@
-package com.github.rocketk.jorm;
+package com.github.rocketk.jorm.util;
 
+import com.github.rocketk.jorm.JormQueryException;
+
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -128,13 +131,14 @@ public class JdbcUtil {
     }
 
     /**
+     * 设置参数，不会对参数进行转换，如果设置成功则返回 true
      * @param ps
      * @param parameterIndex
      * @param arg
      * @return true 设置成功； false 设置失败，类型不对
      * @throws SQLException
      */
-    public static boolean setBaseTypeArg(PreparedStatement ps, int parameterIndex, Object arg) throws SQLException {
+    public static boolean setArgWithoutConversion(PreparedStatement ps, int parameterIndex, Object arg) throws SQLException {
         if (arg == null) {
 //            ps.setNull(parameterIndex, ps.getParameterMetaData().getParameterType(parameterIndex));
             ps.setObject(parameterIndex, null);
@@ -174,6 +178,10 @@ public class JdbcUtil {
         }
         if (arg instanceof Short) {
             ps.setShort(parameterIndex, (Short) arg);
+            return true;
+        }
+        if (arg instanceof byte[]) {
+            ps.setBlob(parameterIndex, new ByteArrayInputStream((byte[]) arg));
             return true;
         }
 //        throw new JormQueryException("unsupported argument type " + arg.getClass().getCanonicalName());

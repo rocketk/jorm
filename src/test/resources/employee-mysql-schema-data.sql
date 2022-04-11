@@ -26,51 +26,34 @@ create table `employee`
 delete
 from `employee`;
 
-insert into `employee`
-set `name`              = 'Jack',
-    `gender`            = 1,
-    `academic_degree`   = 'NON',
-    `salary`            = '20000.00',
-    `tags`              = 'dev t1',
-    `languages`         = 'java python',
-    `attributes`        = '{"key1": "value1", "key2": "value2"}',
-    `during_internship` = true,
-    `birth_date`        = str_to_date('1988-12-31', '%Y-%m-%d'),
-    `created_at`        = now(),
-    `updated_at`        = now();
-insert into `employee`
-set `name`              = 'Benjamin',
-    `gender`            = 1,
-    `academic_degree`   = 'BACHELOR',
-    `salary`            = '31901.51',
-    `tags`              = 'hr',
-    `languages`         = 'java python',
-    `attributes`        = '{"key1": "value1", "key2": "value2"}',
-    `during_internship` = false,
-    `birth_date`        = str_to_date('1989-01-01', '%Y-%m-%d'),
-    `created_at`        = now(),
-    `updated_at`        = now();
-insert into `employee`
-set `name`              = 'Mary',
-    `gender`            = 0,
-    `academic_degree`   = 'MASTER',
-    `salary`            = '12345.09',
-    `tags`              = 'manager m3',
-    `attributes`        = '{"key1": "value1", "key2": "value2"}',
-    `during_internship` = false,
-    `birth_date`        = str_to_date('2000-10-01', '%Y-%m-%d'),
-    `created_at`        = now(),
-    `updated_at`        = now();
-insert into `employee`
-set `name`              = '王大锤',
-    `gender`            = 0,
-    `academic_degree`   = 'DOCTORATE',
-    `salary`            = '43210.50',
-    `tags`              = 'CEO',
-    `languages`         = 'go java javascript',
-    `attributes`        = '{"key1": "value1", "key2": "value2"}',
-    `during_internship` = false,
-    `birth_date`        = str_to_date('1968-04-01', '%Y-%m-%d'),
-    `profile`           = '{"fullName": "王大锤", "email": "wangdachui@dachui.com", "bio": "嗨，大家好"}',
-    `created_at`        = now(),
-    `updated_at`        = now();
+insert into employee (name, gender, academic_degree, salary, birth_date, tags, languages, attributes,
+                      during_internship, profile, created_at, updated_at)
+values ( 'Jack', 1, 'NON', 20000.00, str_to_date('1988-12-31', '%Y-%m-%d'), 'dev t1', 'java python'
+       , '{"key1": "value1", "key2": "value2"}', 0
+       , '{"fullName": "Jack", "email": "jack@rocket.com", "bio": "I am Jack"}'
+       , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s')
+       , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s'));
+
+insert into employee (name, gender, academic_degree, salary, birth_date, tags, languages, attributes,
+                      during_internship, profile, created_at, updated_at)
+values ( 'Benjamin', 1, 'BACHELOR', 31901.51, str_to_date('1989-01-01', '%Y-%m-%d'), 'hr', 'java python'
+       , '{"key1": "value1", "key2": "value2"}', 0
+       , '{"fullName": "Benjamin", "email": "benjamin@rocket.com", "bio": "Hello!"}'
+       , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s')
+       , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s'));
+
+insert into employee (name, gender, academic_degree, salary, birth_date, tags, languages, attributes,
+                      during_internship, profile, created_at, updated_at)
+values ( 'Mary', 0, 'MASTER', 12345.01, str_to_date('1979-10-01', '%Y-%m-%d'), 'manager m3', 'java python'
+       , '{"key1": "value1", "key2": "value2"}', 0
+       , null
+       , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s')
+       , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s'));
+
+insert into employee (name, gender, academic_degree, salary, birth_date, tags, languages, attributes,
+                      during_internship, profile, created_at, updated_at)
+values ( '赵今麦', 0, 'BACHELOR', 1000.90, str_to_date('2008-01-01', '%Y-%m-%d'), 'student', null
+       , null, 1
+       , ''
+       , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s')
+       , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s'));

@@ -14,9 +14,9 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.*;
 
-import static com.github.rocketk.jorm.JdbcUtil.getFromResultSet;
-import static com.github.rocketk.jorm.JdbcUtil.isSupportedTypeByJdbc;
-import static com.github.rocketk.jorm.ReflectionUtil.*;
+import static com.github.rocketk.jorm.util.JdbcUtil.getFromResultSet;
+import static com.github.rocketk.jorm.util.JdbcUtil.isSupportedTypeByJdbc;
+import static com.github.rocketk.jorm.util.ReflectionUtil.*;
 
 /**
  * @author pengyu
