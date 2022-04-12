@@ -10,8 +10,8 @@ JORM是一个基于JDBC的轻量级ORM工具。与Mybatis和Hibernate不同的�
 @Test
 public void testQueryFirst_withChineseChar() {
   final Jorm db = new Jorm(ds);
-  final Optional<Employee> employee = db.query(Employee.class).where("name=?", "赵今麦").first();
-  // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[赵今麦]"
+  final Optional<Employee> employee = db.query(Employee.class).where("name=?", "张三").first();
+  // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[张三]"
   assertTrue(employee.isPresent());
   final Employee zjm = employee.get();
 }

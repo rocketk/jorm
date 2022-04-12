@@ -156,10 +156,10 @@ public abstract class AbstractQueryInstance<T> {
 
     protected void appendWhereClause(boolean findDeletedRows, StringBuilder sql, String whereClause) {
         String whereKeyword = " where ";
-        if (findDeletedRows) {
+        if (!findDeletedRows) {
             final Optional<String> deletedAtColumnName = deletedAtColumn(model);
             if (deletedAtColumnName.isPresent()) {
-                sql.append(" where ").append(deletedAtColumnName).append(" is null ");
+                sql.append(" where ").append(deletedAtColumnName.get()).append(" is null ");
                 whereKeyword = " and ";
             }
         }

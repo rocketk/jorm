@@ -1,8 +1,8 @@
 package com.github.rocketk.jorm;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.github.rocketk.AcademicDegree;
 import com.github.rocketk.BaseDataTest;
+import com.github.rocketk.data.AcademicDegree;
 import com.github.rocketk.data.Employee;
 import com.github.rocketk.data.Gender;
 import com.github.rocketk.data.Profile;
@@ -185,11 +185,11 @@ public class JormHsqldbTest {
     @Test
     public void testQueryFirst_withChineseChar() {
         final Jorm db = new Jorm(ds);
-        final Optional<Employee> employee = db.query(Employee.class).where("name=?", "赵今麦").first();
+        final Optional<Employee> employee = db.query(Employee.class).where("name=?", "张三").first();
         assertTrue(employee.isPresent());
         final Employee zjm = employee.get();
         assertEquals(1004, zjm.getPk());
-        assertEquals("赵今麦", zjm.getName());
+        assertEquals("张三", zjm.getName());
         assertEquals(Gender.FEMALE, zjm.getGender());
         assertEquals(AcademicDegree.BACHELOR, zjm.getAcademicDegree());
         assertEquals(new BigDecimal("1000.90"), zjm.getSalary());
@@ -213,6 +213,28 @@ public class JormHsqldbTest {
     }
 
     @Test
+    public void testQueryFind_shouldFindDeletedRows() {
+        final Jorm db = new Jorm(ds);
+        final List<Employee> list = db.query(Employee.class).shouldFindDeletedRows(true).find();
+        assertNotNull(list);
+        assertEquals(5, list.size());
+    }
+
+    @Test
+    public void testQueryFind_withLimitAndOffsetAndOrderBy() {
+        final Jorm db = new Jorm(ds);
+        final List<Employee> list = db.query(Employee.class)
+                .limit(2)
+                .offset(1)
+                .orderBy("pk asc")
+                .find();
+        assertNotNull(list);
+        assertEquals(2, list.size());
+        assertEquals(1002, list.get(0).getPk());
+        assertEquals(1003, list.get(1).getPk());
+    }
+
+    @Test
     public void testQueryFind_zeroResultButNotNull() {
         final Jorm db = new Jorm(ds);
         final List<Employee> list = db.query(Employee.class).where("name=?", "never").find();
@@ -225,10 +247,10 @@ public class JormHsqldbTest {
         final Jorm db = new Jorm(ds);
         final long affected = db.update(Employee.class)
                 .set("academic_degree", AcademicDegree.MASTER)
-                .where("name=?", "赵今麦")
+                .where("name=?", "张三")
                 .execUpdate();
         assertEquals(1, affected);
-        final Optional<Employee> retrieved = db.query(Employee.class).where("name=?", "赵今麦").first();
+        final Optional<Employee> retrieved = db.query(Employee.class).where("name=?", "张三").first();
         assertTrue(retrieved.isPresent());
         assertEquals(AcademicDegree.MASTER, retrieved.get().getAcademicDegree());
         // 更新时间小于1秒
@@ -291,6 +313,31 @@ public class JormHsqldbTest {
         assertNotNull(jack2.getUpdatedAt());
         // 更新时间小于1秒
         assertTrue(System.currentTimeMillis() - jack2.getUpdatedAt().getTime() < 1000);
+    }
+
+    @Test
+    public void testUpdate_warnWhenNoWhereClause() {
+        final Jorm db = new Jorm(ds);
+        try {
+            db.update(Employee.class).set("attributes", null).execUpdate();
+            fail("an exception should be thrown");
+        } catch (JormUpdateException e) {
+            // success
+            assertTrue(e.getMessage().contains("where clause is empty"));
+        }
+        final long affected = db.update(Employee.class).set("attributes", null).ignoreNoWhereClauseWarning(true).execUpdate();
+        assertEquals(4, affected);
+    }
+
+    @Test
+    public void testUpdate_shouldUpdateDeletedRows() {
+        final Jorm db = new Jorm(ds);
+        final long affected = db.update(Employee.class)
+                .set("attributes", null)
+                .ignoreNoWhereClauseWarning(true)
+                .shouldUpdateDeletedRows(true)
+                .execUpdate();
+        assertEquals(5, affected);
     }
 
     private void assertEmployeeEquals(Employee expected, Employee given) {

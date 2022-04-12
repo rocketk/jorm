@@ -21,7 +21,7 @@ public class BaseDataTest {
 
     public static DruidDataSource createDataSourceForHsqlDb() throws IOException, SQLException {
         DruidDataSource ds = new DruidDataSource();
-        ds.setDriverClassName("org.hsqldb.jdbcDriver");
+        ds.setDriverClassName("org.hsqldb.jdbc.JDBCDriver");
         ds.setUrl("jdbc:hsqldb:mem:aname");
         ds.setUsername("sa");
         ds.setPassword("");

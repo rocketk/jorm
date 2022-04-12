@@ -1,7 +1,7 @@
 package com.github.rocketk.jorm;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.github.rocketk.AcademicDegree;
+import com.github.rocketk.data.AcademicDegree;
 import com.github.rocketk.data.Employee;
 import com.github.rocketk.data.Gender;
 import com.github.rocketk.jorm.conf.Config;
@@ -59,7 +59,7 @@ public class JormMysqlTest {
     @Test
     public void first() {
         final Optional<Employee> employee = db.query(Employee.class)
-                .where("name=?", "赵今麦")
+                .where("name=?", "张三")
                 .first();
         assertNotNull(employee);
         assertTrue(employee.isPresent());
@@ -84,7 +84,7 @@ public class JormMysqlTest {
         final int n = 5;
         for (int i = 0; i < n; i++) {
             final Optional<Employee> employee = db.query(Employee.class)
-                    .where("name=?", "赵今麦")
+                    .where("name=?", "张三")
                     .first();
         }
         final long costs = System.currentTimeMillis() - t0;
@@ -121,20 +121,20 @@ public class JormMysqlTest {
 
     @Test
     public void first_raw() {
-        final Optional<Employee> employee = db.query(Employee.class).rawSql("select * from employee where name=?", "赵今麦").first();
+        final Optional<Employee> employee = db.query(Employee.class).rawSql("select * from employee where name=?", "张三").first();
         logger.info("employee: {}", employee);
     }
 
     @Test
     public void first_raw_map() {
-        final Optional<Map> employee = db.queryMap().rawSql("select * from employee where name=?", "赵今麦").first();
+        final Optional<Map> employee = db.queryMap().rawSql("select * from employee where name=?", "张三").first();
         logger.info("employee: {}", employee);
     }
 
     @Test
     public void first_raw_customRowMapper() {
         final Optional<Employee> employee = db.query(Employee.class)
-                .rawSql("select name, gender from employee where name=?", "赵今麦")
+                .rawSql("select name, gender from employee where name=?", "张三")
                 .rowMapper((rs, omitted) -> {
                     final Employee e = new Employee();
                     e.setName(rs.getString("name"));
@@ -163,7 +163,7 @@ public class JormMysqlTest {
         assertTrue(count > 1);
 
         final long count1 = db.query(Employee.class)
-                .where("name=?", "赵今麦")
+                .where("name=?", "张三")
                 .count();
         logger.info("count1: {}", count1);
         assertEquals(1, count1);

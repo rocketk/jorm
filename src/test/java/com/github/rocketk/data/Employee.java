@@ -1,9 +1,7 @@
 package com.github.rocketk.data;
 
-import com.github.rocketk.AcademicDegree;
 import com.github.rocketk.jorm.anno.JormIgnore;
 import com.github.rocketk.jorm.anno.JormTable;
-import com.google.common.base.MoreObjects;
 
 import java.math.BigDecimal;
 import java.util.*;
