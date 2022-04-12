@@ -6,6 +6,7 @@ import com.github.rocketk.jorm.json.JsonMapper;
 import com.github.rocketk.jorm.mapper.column.ColumnFieldNameMapper;
 import com.github.rocketk.jorm.mapper.column.StringArrayColumnFieldMapper;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -47,12 +48,12 @@ public class DefaultRowMapper<T> implements RowMapper<T> {
     }
 
     private Map<String, Object> asMap(ResultSet rs, Set<String> omittedColumns) {
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = Maps.newLinkedHashMap();
         try {
             final ResultSetMetaData metaData = rs.getMetaData();
             for (int i = 1; i <= metaData.getColumnCount(); i++) {
                 final String label = metaData.getColumnLabel(i);
-                if (!omittedColumns.contains(label)) {
+                if (!containsLabel(omittedColumns, label)) {
                     map.put(label, rs.getObject(i));
                 }
             }
@@ -70,7 +71,7 @@ public class DefaultRowMapper<T> implements RowMapper<T> {
             final ResultSetMetaData metaData = rs.getMetaData();
             for (int i = 1; i <= metaData.getColumnCount(); i++) {
                 final String label = metaData.getColumnLabel(i);
-                if (!omittedColumns.contains(label)) {
+                if (!containsLabel(omittedColumns, label)) {
                     setField(obj, label, rs, i);
                 }
             }
@@ -78,6 +79,16 @@ public class DefaultRowMapper<T> implements RowMapper<T> {
         } catch (Exception e) {
             throw new RowMapperException("cannot read row to model", e);
         }
+    }
+
+    private boolean containsLabel(Set<String> labels, String label) {
+        if (labels == null || labels.size() == 0) {
+            return false;
+        }
+        // 有些数据库（如hsqldb），在返回数据时，列名会变成大写，尽管在创建表的时候全是小写的列名
+        return labels.contains(label)
+                || labels.contains(StringUtils.upperCase(label))
+                || labels.contains(StringUtils.lowerCase(label));
     }
 
     private void initLabelFieldMap() {

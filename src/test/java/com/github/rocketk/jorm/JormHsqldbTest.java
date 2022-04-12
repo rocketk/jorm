@@ -16,7 +16,10 @@ import org.junit.Test;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.github.rocketk.util.DateUtil.toDate;
 import static com.github.rocketk.util.DateUtil.toDateTime;
@@ -145,11 +148,47 @@ public class JormHsqldbTest {
     }
 
     @Test
+    public void testQueryFirst_withOmit() {
+        final Jorm db = new Jorm(ds);
+        final Optional<Employee> employee = db.query(Employee.class).omit("profile").where("name=?", "Jack").first();
+        assertTrue(employee.isPresent());
+        final Employee jack = employee.get();
+        assertNull(jack.getProfile());
+    }
+
+    @Test
+    public void testQueryFirst_withSelect() {
+        final Jorm db = new Jorm(ds);
+        final Optional<Employee> employee = db.query(Employee.class)
+                .select("pk", "name", "gender")
+                .where("name=?", "Jack")
+                .first();
+        assertTrue(employee.isPresent());
+        final Employee jack = employee.get();
+        assertEquals("Jack", jack.getName());
+        assertEquals(1001, jack.getPk());
+        assertEquals(Gender.MALE, jack.getGender());
+        assertNull(jack.getAcademicDegree());
+        assertNull(jack.getSalary());
+        assertNull(jack.getBirthDate());
+        assertNull(jack.getTags());
+        assertNull(jack.getLanguages());
+        assertNull(jack.getAttributes());
+        assertNull(jack.getAttributes());
+        assertNull(jack.getDuringInternship());
+        assertNull(jack.getProfile());
+        assertNull(jack.getDeletedAt());
+        assertNull(jack.getCreatedAt());
+        assertNull(jack.getUpdatedAt());
+    }
+
+    @Test
     public void testQueryFirst_withChineseChar() {
         final Jorm db = new Jorm(ds);
         final Optional<Employee> employee = db.query(Employee.class).where("name=?", "赵今麦").first();
         assertTrue(employee.isPresent());
         final Employee zjm = employee.get();
+        assertEquals(1004, zjm.getPk());
         assertEquals("赵今麦", zjm.getName());
         assertEquals(Gender.FEMALE, zjm.getGender());
         assertEquals(AcademicDegree.BACHELOR, zjm.getAcademicDegree());
@@ -236,7 +275,7 @@ public class JormHsqldbTest {
         attributes.put("hi", "world");
         jack.setAttributes(attributes);
         jack.setDuringInternship(true);
-        jack.setProfile(new Profile("Jack de Trump","jack_de_trump@rocket.com", "Hello World!"));
+        jack.setProfile(new Profile("Jack de Trump", "jack_de_trump@rocket.com", "Hello World!"));
         final long affected = db.update(Employee.class)
                 .obj(jack)
                 .where("pk=?", jack.getPk())
