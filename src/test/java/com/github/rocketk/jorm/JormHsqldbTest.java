@@ -222,8 +222,10 @@ public class JormHsqldbTest {
         final Optional<Employee> jackOptional = db.query(Employee.class).where("name=?", "Jack").first();
         assertTrue(jackOptional.isPresent());
         final Employee jack = jackOptional.get();
+        final Date createdAt = jack.getCreatedAt();
+        final Date updatedAt = jack.getUpdatedAt();
         jack.setUpdatedAt(null); // 设置为 null 以触发自动更新 updated_at 列
-        jack.setCreatedAt(null); // 设置为 null 以触发自动更新 created_at 列
+        jack.setCreatedAt(null); // 设置为 null 以避免覆盖 created_at 列
         jack.setName("New Jack");
         jack.setGender(Gender.FEMALE);
         jack.setAvatar(new byte[]{1, 2, 3, 4});
@@ -245,6 +247,9 @@ public class JormHsqldbTest {
         final Employee jack2 = jackOptional2.get();
         assertEmployeeEquals(jack, jack2);
         assertNull(jack2.getDeletedAt());
+        assertEquals(createdAt, jack2.getCreatedAt());
+        assertNotEquals(updatedAt, jack2.getUpdatedAt());
+        assertNotNull(jack2.getUpdatedAt());
         // 更新时间小于1秒
         assertTrue(System.currentTimeMillis() - jack2.getUpdatedAt().getTime() < 1000);
     }
@@ -259,7 +264,7 @@ public class JormHsqldbTest {
         assertArrayEquals(expected.getAttributes().keySet().toArray(), given.getAttributes().keySet().toArray());
         assertEquals(expected.getDuringInternship(), given.getDuringInternship());
         assertEquals(expected.getProfile(), given.getProfile());
-        assertEquals(expected.getCreatedAt(), given.getCreatedAt());
+//        assertEquals(expected.getCreatedAt(), given.getCreatedAt());
         assertNull(given.getDeletedAt());
     }
 }
