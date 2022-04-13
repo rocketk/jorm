@@ -10,6 +10,7 @@ import com.github.rocketk.jorm.dialect.Dialect;
 import com.google.common.collect.Lists;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ import static org.junit.Assert.*;
  * @author pengyu
  * @date 2022/3/24
  */
+@Ignore
 public class JormMysqlTest {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static DruidDataSource ds;

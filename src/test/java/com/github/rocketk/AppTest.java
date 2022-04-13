@@ -1,5 +1,6 @@
 package com.github.rocketk;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -7,6 +8,7 @@ import org.junit.Test;
  */
 public class AppTest {
     @Test
+    @Ignore
     public void test() {
         System.out.println(Short.class.isAssignableFrom(Long.class));
         System.out.println(Integer.class.isAssignableFrom(Long.class));
