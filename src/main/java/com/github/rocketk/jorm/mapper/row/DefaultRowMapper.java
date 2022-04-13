@@ -99,13 +99,15 @@ public class DefaultRowMapper<T> implements RowMapper<T> {
                 this.ignoreFields.add(field);
                 continue;
             }
-            final String fieldName = field.getName();
-            final String columnName = columnFieldNameMapper.fieldNameToColumnName(fieldName);
+            // 先判断 JormColumn 如果有值，则以 JormColumn 中的 name() 为准
+            // 如果没有值，则根据 fieldName 推断出列名
+            final String columnName = columnName(field).orElseGet(()->columnFieldNameMapper.fieldNameToColumnName(field.getName()));
             this.columnFieldMap.put(columnName, field);
         }
     }
 
     private void setField(T obj, String column, ResultSet rs, int index) throws IllegalAccessException, SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException {
+        column = StringUtils.lowerCase(column);
         if (this.ignoreColumns.contains(column)) {
             return;
         }

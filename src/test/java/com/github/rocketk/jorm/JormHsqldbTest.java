@@ -2,10 +2,7 @@ package com.github.rocketk.jorm;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.github.rocketk.BaseDataTest;
-import com.github.rocketk.data.AcademicDegree;
-import com.github.rocketk.data.Employee;
-import com.github.rocketk.data.Gender;
-import com.github.rocketk.data.Profile;
+import com.github.rocketk.data.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.AfterClass;
@@ -240,6 +237,15 @@ public class JormHsqldbTest {
         final List<Employee> list = db.query(Employee.class).where("name=?", "never").find();
         assertNotNull(list);
         assertEquals(0, list.size());
+    }
+
+    @Test
+    public void testQuery_withColumnAnnotation() {
+        final Jorm db = new Jorm(ds);
+        final Optional<Employee2> zhangsan = db.query(Employee2.class).where("name=?", "张三").first();
+        assertTrue(zhangsan.isPresent());
+        assertNotNull(zhangsan.get().getInternship());
+        assertTrue(zhangsan.get().getInternship());
     }
 
     @Test

@@ -98,10 +98,11 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
             if (shouldIgnoreWriteToDb(f)) {
                 continue;
             }
-            String columnName = columnName(f);
-            if (StringUtils.isBlank(columnName)) {
-                columnName = this.columnFieldNameMapper.fieldNameToColumnName(f.getName());
-            }
+//            String columnName = columnName(f);
+//            if (StringUtils.isBlank(columnName)) {
+//                columnName = this.columnFieldNameMapper.fieldNameToColumnName(f.getName());
+//            }
+            final String columnName = columnName(f).orElseGet(() -> columnFieldNameMapper.fieldNameToColumnName(f.getName()));
             if (omittedColumns.contains(columnName)) {
                 continue;
             }

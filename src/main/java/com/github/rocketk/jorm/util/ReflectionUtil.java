@@ -109,12 +109,13 @@ public class ReflectionUtil {
 //        return t != null && t.onlyFindNonDeleted();
 //    }
 
-    public static String columnName(Field field) {
+    public static Optional<String> columnName(Field field) {
         final JormColumn column = field.getAnnotation(JormColumn.class);
-        if (column != null) {
-            return column.name();
+        if (column != null && StringUtils.isNotBlank(column.name())) {
+            return Optional.of(column.name());
         }
-        return null;
+        return Optional.empty();
+//        return null;
     }
 
     public static boolean shouldUseJson(Class<?> type) {
