@@ -1,4 +1,4 @@
-package com.github.rocketk.util;
+package com.github.rocketk.jorm.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

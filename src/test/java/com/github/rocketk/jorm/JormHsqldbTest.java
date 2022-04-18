@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.github.rocketk.util.DateUtil.toDate;
-import static com.github.rocketk.util.DateUtil.toDateTime;
+import static com.github.rocketk.jorm.util.DateUtil.toDate;
+import static com.github.rocketk.jorm.util.DateUtil.toDateTime;
 import static org.junit.Assert.*;
 
 /**
@@ -246,6 +246,34 @@ public class JormHsqldbTest {
         assertTrue(zhangsan.isPresent());
         assertNotNull(zhangsan.get().getInternship());
         assertTrue(zhangsan.get().getInternship());
+    }
+
+    @Test
+    public void testQuery_withDateCondition() {
+        final Jorm db = new Jorm(ds);
+        final long count = db.query(Employee.class)
+                .where("birth_date>=?", toDate("2000-01-01"))
+                .shouldFindDeletedRows(true)
+                .count();
+        assertEquals(2, count);
+    }
+
+    @Test
+    public void testRawQuery() {
+        final Jorm db = new Jorm(ds);
+        final Optional<Employee> zhangsan = db.rawQuery(Employee.class, "select * from employee where name=? limit 1", "张三").first(); // non-deleted row
+        final Optional<Employee> lisi = db.rawQuery(Employee.class, "select * from employee where name=? limit 1", "李四").first(); // deleted row
+        assertTrue(zhangsan.isPresent());
+        assertTrue(lisi.isPresent());
+    }
+
+    @Test
+    public void testRawQuery2() {
+        final Jorm db = new Jorm(ds);
+        final Optional<Employee> zhangsan = db.query(Employee.class)
+                .rawSql("select * from employee where birth_date >= ?", toDateTime("2000-01-01 00:00:00"))
+                .first();
+        assertTrue(zhangsan.isPresent());
     }
 
     @Test

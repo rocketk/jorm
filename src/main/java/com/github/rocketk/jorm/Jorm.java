@@ -40,6 +40,10 @@ public class Jorm {
         return new QueryInstance<>(ds, config, model, rowMapperFactory);
     }
 
+    public <T> Query<T> rawQuery(Class<T> model, String rawSql, Object... args) {
+        return new QueryInstance<>(ds, config, model, rowMapperFactory).rawSql(rawSql, args);
+    }
+
     public Query<Map> queryMap() {
         return new QueryInstance<>(ds, config, Map.class, rowMapperFactory);
     }
