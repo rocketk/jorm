@@ -1,4 +1,4 @@
-package com.github.rocketk.jorm;
+package com.github.rocketk.jorm.err;
 
 /**
  * @author pengyu

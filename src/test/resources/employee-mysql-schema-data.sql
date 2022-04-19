@@ -15,9 +15,9 @@ create table `employee`
     `attributes`        text,
     `during_internship` bool,
     `profile`           text,
-    `created_at`        datetime        not null,
-    `updated_at`        datetime        not null,
-    `deleted_at`        datetime,
+    `created_at`        datetime(3)        not null,
+    `updated_at`        datetime(3)        not null,
+    `deleted_at`        datetime(3),
     primary key (`pk`)
 ) engine = innodb
   auto_increment = 1001
@@ -30,7 +30,7 @@ insert into employee (name, gender, academic_degree, salary, birth_date, tags, l
                       during_internship, profile, created_at, updated_at)
 values ( 'Jack', 1, 'NON', 20000.00, str_to_date('1988-12-31', '%Y-%m-%d'), 'dev t1', 'java python'
        , '{"key1": "value1", "key2": "value2"}', 0
-       , '{"fullName": "Jack", "email": "jack@rocket.com", "bio": "I am Jack"}'
+       , '{"fullName": "Jack Trump", "email": "jack@rocket.com", "bio": "I am Jack"}'
        , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s')
        , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s'));
 
@@ -57,3 +57,12 @@ values ( '张三', 0, 'BACHELOR', 1000.90, str_to_date('2008-01-01', '%Y-%m-%d')
        , ''
        , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s')
        , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s'));
+
+insert into employee (name, gender, academic_degree, salary, birth_date, tags, languages, attributes,
+                      during_internship, profile, created_at, updated_at, deleted_at)
+values ( '李四', 0, 'BACHELOR', 1000.90, str_to_date('2008-01-01', '%Y-%m-%d'), 'student', null
+       , null, 1
+       , ''
+       , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s')
+       , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s')
+       , str_to_date('2022-04-13 00:00:00', '%Y-%m-%d %H:%i:%s'));

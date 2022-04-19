@@ -32,4 +32,6 @@ public interface Update<T> {
     long[] execInsertAndReturnKeys();
 
     long execUpdate();
+
+    long execDelete();
 }

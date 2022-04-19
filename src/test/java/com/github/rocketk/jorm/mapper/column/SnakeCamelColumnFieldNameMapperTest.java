@@ -5,7 +5,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author pengyu
@@ -36,11 +36,21 @@ public class SnakeCamelColumnFieldNameMapperTest {
 
     @Test
     public void columnNameToFieldName() {
-        Arrays.stream(testCasePairs).forEach((pair) -> assertEquals(pair[1], mapper.columnNameToFieldName(pair[0])));
+        Arrays.stream(testCasePairs).forEach((pair) -> {
+            final String columnName = pair[0];
+            final String fieldName = mapper.columnNameToFieldName(columnName);
+            System.out.printf("\"%s\" -> \"%s\"%n", columnName, fieldName);
+            assertEquals(pair[1], fieldName);
+        });
     }
 
     @Test
     public void fieldNameToColumnName() {
-        Arrays.stream(testCasePairs).forEach((pair) -> assertEquals(pair[0], mapper.fieldNameToColumnName(pair[1])));
+        Arrays.stream(testCasePairs).forEach((pair) -> {
+            final String fieldName = pair[1];
+            final String columnName = mapper.fieldNameToColumnName(fieldName);
+            System.out.printf("\"%s\" -> \"%s\"%n", fieldName, columnName);
+            assertEquals(pair[0], columnName);
+        });
     }
 }

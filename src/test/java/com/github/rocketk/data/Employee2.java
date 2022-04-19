@@ -11,8 +11,8 @@ import java.util.*;
  * @author pengyu
  * @date 2021/12/12
  */
-@JormTable(name = "employee", autoGenerateCreatedAt = true, autoGenerateUpdatedAt = true)
-public class Employee2 implements Cloneable {
+@JormTable(name = "employee", autoGenerateCreatedAt = true, autoGenerateUpdatedAt = true, enableSoftDelete = false)
+public class Employee2 {
     private long pk;
     private String name;
     private Gender gender;
@@ -185,15 +185,4 @@ public class Employee2 implements Cloneable {
                 .toString();
     }
 
-
-    @Override
-    public Employee2 clone() {
-        try {
-            Employee2 clone = (Employee2) super.clone();
-            // TODO: copy mutable state here, so the clone can't change the internals of the original
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
-    }
 }

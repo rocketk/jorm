@@ -33,6 +33,20 @@ public class BaseDataTest {
 //        ds.close();
         return ds;
     }
+    public static DruidDataSource createDataSourceForMysql() throws IOException, SQLException {
+        DruidDataSource ds = new DruidDataSource();
+        ds.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        ds.setUrl("jdbc:mysql://127.0.0.1:3306/test?characterEncoding=utf8");
+        ds.setUsername("root");
+        ds.setPassword("");
+        ds.setInitialSize(1);
+        ds.setMinIdle(1);
+        ds.setMaxActive(1);
+        ds.setMaxWait(15000);
+        ds.init();
+//        ds.close();
+        return ds;
+    }
 
     public static void runScript(DataSource ds, String resource) throws IOException, SQLException {
         try(final InputStream is = FileReader.getInputStream(resource)) {

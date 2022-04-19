@@ -2,6 +2,7 @@ package com.github.rocketk.jorm;
 
 import com.github.rocketk.jorm.conf.Config;
 import com.github.rocketk.jorm.dialect.Dialect;
+import com.github.rocketk.jorm.err.JormQueryException;
 import com.github.rocketk.jorm.mapper.row.RowMapper;
 import com.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import com.google.common.collect.Lists;
@@ -19,8 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static com.github.rocketk.jorm.util.ReflectionUtil.deletedAtColumn;
 
 /**
  * @author pengyu

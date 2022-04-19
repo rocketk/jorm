@@ -1,6 +1,8 @@
 package com.github.rocketk.jorm;
 
 import com.github.rocketk.jorm.conf.Config;
+import com.github.rocketk.jorm.err.JormUpdateException;
+import com.github.rocketk.jorm.err.WhereClauseAbsentException;
 import com.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -24,9 +26,10 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     //    private Map<String, Object> args = new HashMap<>();
-    private final int MODE_INSERT = 0;
-    private final int MODE_UPDATE = 1;
-    private int mode; // 0 for insert, 1 for update
+//    private final int MODE_INSERT = 0;
+//    private final int MODE_UPDATE = 1;
+//    private final int MODE_DELETE = 2;
+    private Mode mode; // 0 for insert, 1 for update
     private final List<String> argKeys = Lists.newArrayList();
     private final List<Object> argValues = Lists.newArrayList();
     private String whereClause;
@@ -59,9 +62,20 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
             argKeys.add(k);
             argValues.add(v);
         });
-        // only for updating
-        if (mode == MODE_UPDATE && whereArgs != null && whereArgs.length > 0) {
-            argValues.addAll(Arrays.asList(whereArgs));
+        // only for updating and deleting
+        if (whereArgs != null && whereArgs.length > 0) {
+            switch (mode) {
+                case INSERT:
+                    break;
+                case UPDATE:
+                    argValues.addAll(Arrays.asList(whereArgs));
+                    break;
+                case DELETE:
+                    argKeys.clear();
+                    argValues.clear();
+                    argValues.addAll(Arrays.asList(whereArgs));
+                    break;
+            }
         }
     }
 
@@ -75,11 +89,13 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
             return;
         }
         switch (mode) {
-            case MODE_INSERT:
+            case INSERT:
                 createdAtColumn(type).ifPresent(column -> argsMap.putIfAbsent(column, new Date()));
                 // pass
-            case MODE_UPDATE:
+            case UPDATE:
                 updatedAtColumn(type).ifPresent(column -> argsMap.putIfAbsent(column, new Date()));
+                break;
+            case DELETE:
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + mode);
@@ -180,7 +196,7 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
 
     @Override
     public boolean execInsert() {
-        mode = MODE_INSERT;
+        mode = Mode.INSERT;
         init();
         final String sql = this.buildInsertSql();
         if (this.config.isPrintSql()) {
@@ -206,7 +222,7 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
 
     @Override
     public long[] execInsertAndReturnKeys() {
-        mode = MODE_INSERT;
+        mode = Mode.INSERT;
         init();
         final String sql = this.buildInsertSql();
         if (this.config.isPrintSql()) {
@@ -233,10 +249,22 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
 
     @Override
     public long execUpdate() {
-        mode = MODE_UPDATE;
+        mode = Mode.UPDATE;
 //        throw new UnsupportedOperationException("method execUpdate is not implemented");
         init();
         final String sql = buildUpdateSql();
+        return execUpdateInternally(sql);
+    }
+
+    @Override
+    public long execDelete() {
+        mode = Mode.DELETE;
+        init();
+        final String sql = buildDeleteSql();
+        return execUpdateInternally(sql);
+    }
+
+    private long execUpdateInternally(String sql) {
         if (config.isPrintSql()) {
             logger.info("exec sql: \"{}\", argValues: \"{}\"", sql, argValues);
         }
@@ -269,7 +297,7 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
             throw new JormUpdateException("argKeys is empty while building the insert sql");
         }
         if (!this.ignoreNoWhereClauseWarning && StringUtils.isBlank(this.whereClause)) {
-            throw new JormUpdateException("where clause is empty while building the update sql, please call ignoreNoWhereClauseWarning(true) if you don't want to see this");
+            throw new WhereClauseAbsentException("where clause is empty while building the update sql, please call ignoreNoWhereClauseWarning(true) if you don't want to see this warning");
         }
         final StringBuilder sql = new StringBuilder();
         sql.append("update ").append(this.table).append(" set ");
@@ -280,4 +308,30 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
         return sql.toString();
     }
 
+    private String buildDeleteSql() {
+        if (!this.ignoreNoWhereClauseWarning && StringUtils.isBlank(this.whereClause)) {
+            throw new WhereClauseAbsentException("where clause is empty while building the delete sql, please call ignoreNoWhereClauseWarning(true) if you don't want to see this this warning");
+        }
+        final StringBuilder sql = new StringBuilder();
+        appendDeleteClause(sql);
+        // where?
+        appendWhereClause(updateDeletedRows, sql, whereClause);
+        return sql.toString();
+    }
+
+    private void appendDeleteClause(StringBuilder sql) {
+        final Optional<String> deletedAtColumn = deletedAtColumn(model);
+        if (deletedAtColumn.isPresent()) {
+            sql.append("update ").append(this.table).append(" set ").append(deletedAtColumn.get()).append("=?");
+            argValues.add(0, new Date());
+            return;
+        }
+        sql.append("delete from ").append(this.table);
+    }
+
+    private enum Mode {
+        INSERT,
+        UPDATE,
+        DELETE,
+    }
 }

@@ -1,6 +1,6 @@
 package com.github.rocketk.jorm.util;
 
-import com.github.rocketk.jorm.JormQueryException;
+import com.github.rocketk.jorm.err.JormQueryException;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;

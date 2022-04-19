@@ -16,9 +16,7 @@ public @interface JormTable {
 
     String primaryKeyName() default "pk";
 
-    boolean onlyFindNonDeleted() default true;
-
-    boolean softDelete() default true;
+    boolean enableSoftDelete() default false;
 
     String deletedAtColumn() default "deleted_at";
 

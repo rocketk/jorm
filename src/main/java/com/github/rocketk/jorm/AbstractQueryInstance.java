@@ -2,6 +2,7 @@ package com.github.rocketk.jorm;
 
 import com.github.rocketk.jorm.anno.JormCustomEnum;
 import com.github.rocketk.jorm.conf.Config;
+import com.github.rocketk.jorm.err.JormQueryException;
 import com.github.rocketk.jorm.json.JsonMapper;
 import com.github.rocketk.jorm.json.JsonMapperFactory;
 import com.github.rocketk.jorm.mapper.column.ColumnFieldNameMapper;

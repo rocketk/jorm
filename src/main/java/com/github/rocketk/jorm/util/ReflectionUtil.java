@@ -44,7 +44,7 @@ public class ReflectionUtil {
 
     public static <T> Optional<String> deletedAtColumn(Class<T> model) {
         final JormTable t = model.getAnnotation(JormTable.class);
-        if (t != null && t.onlyFindNonDeleted() && StringUtils.isNotBlank(t.deletedAtColumn())) {
+        if (t != null && t.enableSoftDelete() && StringUtils.isNotBlank(t.deletedAtColumn())) {
             return Optional.of(t.deletedAtColumn());
         }
         return Optional.empty();
