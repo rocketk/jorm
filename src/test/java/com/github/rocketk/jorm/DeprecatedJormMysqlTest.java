@@ -174,11 +174,11 @@ public class DeprecatedJormMysqlTest {
     @Test
     public void insert() {
         final Date now = new Date();
-        final boolean success = db.update(Employee.class)
+        final boolean success = db.forModel(Employee.class)
                 .set("name", "柯达")
                 .set("created_at", now)
                 .set("updated_at", now)
-                .execInsert();
+                .insert();
         assertTrue(success);
     }
 
@@ -186,11 +186,11 @@ public class DeprecatedJormMysqlTest {
     public void insert_withGeneratedKeys_firstKey() {
         final Date now = new Date();
         try {
-            final long pk = db.update(Employee.class)
+            final long pk = db.forModel(Employee.class)
                     .set("name", "柯达")
                     .set("created_at", now)
                     .set("updated_at", now)
-                    .execInsertAndReturnFirstKey();
+                    .insertAndReturnFirstKey();
             assertTrue(pk > 0);
             logger.info("generated pk: {}", pk);
         } catch (Exception e) {
@@ -210,10 +210,10 @@ public class DeprecatedJormMysqlTest {
 //        employee.setUpdatedAt(now);
 //        employee.setCreatedAt(now);
         try {
-            final long pk = db.update(Employee.class)
+            final long pk = db.forModel(Employee.class)
                     .obj(employee)
                     .omit("gender")
-                    .execInsertAndReturnFirstKey();
+                    .insertAndReturnFirstKey();
             assertTrue(pk > 0);
             logger.info("generated pk: {}", pk);
 
@@ -232,11 +232,11 @@ public class DeprecatedJormMysqlTest {
     public void insert_withGeneratedKeys_keysArray() {
         final Date now = new Date();
         try {
-            final long[] keys = db.update(Employee.class)
+            final long[] keys = db.forModel(Employee.class)
                     .set("name", "柯达")
                     .set("created_at", now)
                     .set("updated_at", now)
-                    .execInsertAndReturnKeys();
+                    .insertAndReturnKeys();
             assertTrue(keys.length > 0);
             logger.info("generated keys: {}", keys);
         } catch (Exception e) {

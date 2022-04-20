@@ -25,13 +25,13 @@ public interface Update<T> {
 
     Update<T> shouldUpdateDeletedRows(boolean updateDeleted);
 
-    boolean execInsert();
+    boolean insert();
 
-    long execInsertAndReturnFirstKey();
+    long insertAndReturnFirstKey();
 
-    long[] execInsertAndReturnKeys();
+    long[] insertAndReturnKeys();
 
-    long execUpdate();
+    long update();
 
-    long execDelete();
+    long delete();
 }

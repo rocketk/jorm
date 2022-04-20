@@ -50,12 +50,12 @@ public abstract class CrudCasesTest {
         final Jorm db = createJorm();
         final Employee e = new Employee();
         e.setName("test");
-        assertTrue(db.update(Employee.class).omit("pk").obj(e).execInsert());
-        assertTrue(db.update(Employee.class).omit("pk")
+        assertTrue(db.forModel(Employee.class).omit("pk").obj(e).insert());
+        assertTrue(db.forModel(Employee.class).omit("pk")
                 .set("name", "test2")
                 .set("created_at", new Date())
                 .set("updated_at", new Date())
-                .execInsert());
+                .insert());
     }
 
     @Test
@@ -63,7 +63,7 @@ public abstract class CrudCasesTest {
         final Jorm db = createJorm();
         final Employee e = new Employee();
         e.setName("test");
-        final long pk = db.update(Employee.class).omit("pk").obj(e).execInsertAndReturnFirstKey();
+        final long pk = db.forModel(Employee.class).omit("pk").obj(e).insertAndReturnFirstKey();
         assertTrue(pk > 0);
         final Optional<Employee> retrieved = db.query(Employee.class).where("pk=?", pk).first();
         assertTrue(retrieved.isPresent());
@@ -84,7 +84,7 @@ public abstract class CrudCasesTest {
         e.setName("test");
         final Date now = new Date();
         e.setUpdatedAt(now);
-        final long pk = db.update(Employee.class).omit("pk").obj(e).set("created_at", now).execInsertAndReturnFirstKey();
+        final long pk = db.forModel(Employee.class).omit("pk").obj(e).set("created_at", now).insertAndReturnFirstKey();
         assertTrue(pk > 0);
         final Optional<Employee> retrieved = db.query(Employee.class).where("pk=?", pk).first();
         assertTrue(retrieved.isPresent());
@@ -107,7 +107,7 @@ public abstract class CrudCasesTest {
         e.setName("test");
         final byte[] avatarBytes = {0, 1, 2, 3};
         e.setAvatar(avatarBytes);
-        final long pk = db.update(Employee.class).omit("pk").obj(e).execInsertAndReturnFirstKey();
+        final long pk = db.forModel(Employee.class).omit("pk").obj(e).insertAndReturnFirstKey();
         assertTrue(pk > 0);
         final Optional<Employee> retrieved = db.query(Employee.class).where("pk=?", pk).first();
         assertTrue(retrieved.isPresent());
@@ -287,10 +287,10 @@ public abstract class CrudCasesTest {
     @Test
     public void testUpdate() {
         final Jorm db = createJorm();
-        final long affected = db.update(Employee.class)
+        final long affected = db.forModel(Employee.class)
                 .set("academic_degree", AcademicDegree.MASTER)
                 .where("name=?", "张三")
-                .execUpdate();
+                .update();
         assertEquals(1, affected);
         final Optional<Employee> retrieved = db.query(Employee.class).where("name=?", "张三").first();
         assertTrue(retrieved.isPresent());
@@ -307,7 +307,7 @@ public abstract class CrudCasesTest {
         final Employee jack = jackOptional.get();
         jack.setUpdatedAt(null); // 设置为 null 以触发自动更新 updated_at 列
 //        jack.setCreatedAt(null); // 设置为 null 以触发自动更新 created_at 列
-        final long affected = db.update(Employee.class).obj(jack).where("pk=?", jack.getPk()).execUpdate();
+        final long affected = db.forModel(Employee.class).obj(jack).where("pk=?", jack.getPk()).update();
         assertEquals(1, affected);
 
         final Optional<Employee> jackOptional2 = db.query(Employee.class).where("pk=?", jack.getPk()).first();
@@ -340,10 +340,10 @@ public abstract class CrudCasesTest {
         jack.setAttributes(attributes);
         jack.setDuringInternship(true);
         jack.setProfile(new Profile("Jack de Trump", "jack_de_trump@rocket.com", "Hello World!"));
-        final long affected = db.update(Employee.class)
+        final long affected = db.forModel(Employee.class)
                 .obj(jack)
                 .where("pk=?", jack.getPk())
-                .execUpdate();
+                .update();
         assertEquals(1, affected);
         final Optional<Employee> jackOptional2 = db.query(Employee.class).where("pk=?", jack.getPk()).first();
         assertTrue(jackOptional2.isPresent());
@@ -361,24 +361,24 @@ public abstract class CrudCasesTest {
     public void testUpdate_warnIfWhereClauseAbsent() {
         final Jorm db = createJorm();
         try {
-            db.update(Employee.class).set("attributes", null).execUpdate();
+            db.forModel(Employee.class).set("attributes", null).update();
             fail("a WhereClauseAbsentException should be thrown");
         } catch (WhereClauseAbsentException e) {
             // success
             assertTrue(e.getMessage().contains("where clause is empty"));
         }
-        final long affected = db.update(Employee.class).set("attributes", null).ignoreNoWhereClauseWarning(true).execUpdate();
+        final long affected = db.forModel(Employee.class).set("attributes", null).ignoreNoWhereClauseWarning(true).update();
         assertEquals(4, affected);
     }
 
     @Test
     public void testUpdate_shouldUpdateDeletedRows() {
         final Jorm db = createJorm();
-        final long affected = db.update(Employee.class)
+        final long affected = db.forModel(Employee.class)
                 .set("attributes", null)
                 .ignoreNoWhereClauseWarning(true)
                 .shouldUpdateDeletedRows(true)
-                .execUpdate();
+                .update();
         assertEquals(5, affected);
     }
 
@@ -399,7 +399,7 @@ public abstract class CrudCasesTest {
     @Test
     public void testDelete_softDelete() {
         final Jorm db = createJorm();
-        final long affected = db.update(Employee.class).where("name=?", "Jack").execDelete();
+        final long affected = db.forModel(Employee.class).where("name=?", "Jack").delete();
         assertEquals(1, affected);
         final Optional<Employee> e = db.query(Employee.class).where("name=?", "Jack").shouldFindDeletedRows(true).first();
         assertTrue(e.isPresent());
@@ -412,7 +412,7 @@ public abstract class CrudCasesTest {
     public void testDelete_warningIfWhereClauseAbsent() {
         final Jorm db = createJorm();
         try {
-            final long affected = db.update(Employee.class).execDelete();
+            final long affected = db.forModel(Employee.class).delete();
             fail("a WhereClaauseAbsentException should be thrown");
         } catch (WhereClauseAbsentException e) {
             assertTrue(e.getMessage().contains("where clause is empty"));
@@ -422,7 +422,7 @@ public abstract class CrudCasesTest {
     @Test
     public void testDelete_hardDelete() {
         final Jorm db = createJorm();
-        final long affected = db.update(Employee2.class).where("name=?", "Jack").execDelete();
+        final long affected = db.forModel(Employee2.class).where("name=?", "Jack").delete();
         assertEquals(1, affected);
         final Optional<Employee2> e = db.query(Employee2.class).where("name=?", "Jack").shouldFindDeletedRows(true).first();
         assertFalse(e.isPresent());

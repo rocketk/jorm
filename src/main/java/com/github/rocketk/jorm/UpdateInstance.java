@@ -195,7 +195,7 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
     }
 
     @Override
-    public boolean execInsert() {
+    public boolean insert() {
         mode = Mode.INSERT;
         init();
         final String sql = this.buildInsertSql();
@@ -212,8 +212,8 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
     }
 
     @Override
-    public long execInsertAndReturnFirstKey() {
-        final long[] keys = this.execInsertAndReturnKeys();
+    public long insertAndReturnFirstKey() {
+        final long[] keys = this.insertAndReturnKeys();
         if (keys.length == 0) {
             throw new JormUpdateException("at last 1 generated key is expected");
         }
@@ -221,7 +221,7 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
     }
 
     @Override
-    public long[] execInsertAndReturnKeys() {
+    public long[] insertAndReturnKeys() {
         mode = Mode.INSERT;
         init();
         final String sql = this.buildInsertSql();
@@ -248,7 +248,7 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
     }
 
     @Override
-    public long execUpdate() {
+    public long update() {
         mode = Mode.UPDATE;
 //        throw new UnsupportedOperationException("method execUpdate is not implemented");
         init();
@@ -257,7 +257,7 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
     }
 
     @Override
-    public long execDelete() {
+    public long delete() {
         mode = Mode.DELETE;
         init();
         final String sql = buildDeleteSql();
