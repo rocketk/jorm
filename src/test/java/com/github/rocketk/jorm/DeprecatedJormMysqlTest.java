@@ -174,7 +174,7 @@ public class DeprecatedJormMysqlTest {
     @Test
     public void insert() {
         final Date now = new Date();
-        final boolean success = db.forModel(Employee.class)
+        final boolean success = db.mutation(Employee.class)
                 .set("name", "柯达")
                 .set("created_at", now)
                 .set("updated_at", now)
@@ -186,7 +186,7 @@ public class DeprecatedJormMysqlTest {
     public void insert_withGeneratedKeys_firstKey() {
         final Date now = new Date();
         try {
-            final long pk = db.forModel(Employee.class)
+            final long pk = db.mutation(Employee.class)
                     .set("name", "柯达")
                     .set("created_at", now)
                     .set("updated_at", now)
@@ -210,7 +210,7 @@ public class DeprecatedJormMysqlTest {
 //        employee.setUpdatedAt(now);
 //        employee.setCreatedAt(now);
         try {
-            final long pk = db.forModel(Employee.class)
+            final long pk = db.mutation(Employee.class)
                     .obj(employee)
                     .omit("gender")
                     .insertAndReturnFirstKey();
@@ -232,7 +232,7 @@ public class DeprecatedJormMysqlTest {
     public void insert_withGeneratedKeys_keysArray() {
         final Date now = new Date();
         try {
-            final long[] keys = db.forModel(Employee.class)
+            final long[] keys = db.mutation(Employee.class)
                     .set("name", "柯达")
                     .set("created_at", now)
                     .set("updated_at", now)

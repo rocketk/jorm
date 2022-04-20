@@ -48,7 +48,7 @@ public class Jorm {
         return new QueryInstance<>(ds, config, Map.class, rowMapperFactory);
     }
 
-    public <T> Update<T> forModel(Class<T> model) {
+    public <T> Update<T> mutation(Class<T> model) {
         return new UpdateInstance<>(ds, config, model, rowMapperFactory);
     }
 }
