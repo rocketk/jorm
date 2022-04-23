@@ -14,15 +14,10 @@ import java.sql.SQLException;
  * @date 2022/4/4
  */
 public class BaseDataTest {
-//    public static final String EMPLOYEE_PROPERTIES = "com/github/rocketk/databases/employee/employee-hsqldb.properties";
-    public static final String EMPLOYEE_PROPERTIES = "com/github/rocketk/databases/employee/employee-hsqldb.properties";
-    public static final String EMPLOYEE_DDL = "com/github/rocketk/databases/employee/employee-hsqldb-schema.sql";
-    public static final String EMPLOYEE_DATA = "com/github/rocketk/databases/employee/employee-hsqldb-dataload.sql";
-
     public static DruidDataSource createDataSourceForHsqlDb() throws IOException, SQLException {
         DruidDataSource ds = new DruidDataSource();
         ds.setDriverClassName("org.hsqldb.jdbc.JDBCDriver");
-        ds.setUrl("jdbc:hsqldb:mem:aname");
+        ds.setUrl("jdbc:hsqldb:mem:test");
         ds.setUsername("sa");
         ds.setPassword("");
         ds.setInitialSize(1);
@@ -37,6 +32,20 @@ public class BaseDataTest {
         DruidDataSource ds = new DruidDataSource();
         ds.setDriverClassName("com.mysql.cj.jdbc.Driver");
         ds.setUrl("jdbc:mysql://127.0.0.1:3306/test?characterEncoding=utf8");
+        ds.setUsername("root");
+        ds.setPassword("");
+        ds.setInitialSize(1);
+        ds.setMinIdle(1);
+        ds.setMaxActive(1);
+        ds.setMaxWait(15000);
+        ds.init();
+//        ds.close();
+        return ds;
+    }
+     public static DruidDataSource createDataSourceForDerby() throws IOException, SQLException {
+        DruidDataSource ds = new DruidDataSource();
+        ds.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
+        ds.setUrl("jdbc:derby:test;create=true");
         ds.setUsername("root");
         ds.setPassword("");
         ds.setInitialSize(1);

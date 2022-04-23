@@ -1,6 +1,6 @@
 package com.github.rocketk.jorm.conf;
 
-import com.github.rocketk.jorm.dialect.Dialect;
+import com.github.rocketk.jorm.dialect.*;
 import com.github.rocketk.jorm.json.JsonProvider;
 
 import static com.github.rocketk.jorm.json.JsonProvider.JACKSON;
@@ -22,6 +22,7 @@ public class Config {
      * jackson, gson, fastjson
      */
     private JsonProvider jsonProvider = JACKSON;
+    private LimitOffsetAppender limitOffsetAppender;
     private boolean printSql = true;
     private Dialect dialect = Dialect.STANDARD;
 
@@ -56,5 +57,13 @@ public class Config {
 
     public void setDialect(Dialect dialect) {
         this.dialect = dialect;
+    }
+
+    public LimitOffsetAppender getLimitOffsetAppender() {
+        return limitOffsetAppender;
+    }
+
+    public void setLimitOffsetAppender(LimitOffsetAppender limitOffsetAppender) {
+        this.limitOffsetAppender = limitOffsetAppender;
     }
 }

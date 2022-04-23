@@ -267,15 +267,6 @@ public abstract class CrudCasesTest {
     }
 
     @Test
-    public void testRawQuery() {
-        final Jorm db = createJorm();
-        final Optional<Employee> zhangsan = db.rawQuery(Employee.class, "select * from employee where name=? limit 1", "张三").first(); // non-deleted row
-        final Optional<Employee> lisi = db.rawQuery(Employee.class, "select * from employee where name=? limit 1", "李四").first(); // deleted row
-        assertTrue(zhangsan.isPresent());
-        assertTrue(lisi.isPresent());
-    }
-
-    @Test
     public void testRawQuery2() {
         final Jorm db = createJorm();
         final Optional<Employee> zhangsan = db.query(Employee.class)

@@ -33,9 +33,9 @@ public interface Query<T> {
 
     Query<T> orderBy(String orderByClause);
 
-    Query<T> limit(int limit);
+    Query<T> limit(long limit);
 
-    Query<T> offset(int offset);
+    Query<T> offset(long offset);
 
     Query<T> dialect(Dialect dialect);
 

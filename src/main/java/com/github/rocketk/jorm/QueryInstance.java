@@ -2,6 +2,8 @@ package com.github.rocketk.jorm;
 
 import com.github.rocketk.jorm.conf.Config;
 import com.github.rocketk.jorm.dialect.Dialect;
+import com.github.rocketk.jorm.dialect.LimitOffsetAppender;
+import com.github.rocketk.jorm.dialect.LimitOffsetAppenderFactory;
 import com.github.rocketk.jorm.err.JormQueryException;
 import com.github.rocketk.jorm.mapper.row.RowMapper;
 import com.github.rocketk.jorm.mapper.row.RowMapperFactory;
@@ -33,8 +35,8 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
     protected Object[] args;
     //    private List<Object> whereClauseArgs = new ArrayList<>();
     private String orderByClause;
-    private Integer limit;
-    private Integer offset;
+    private Long limit;
+    private Long offset;
     private boolean count;
 
     private boolean findDeletedRows;
@@ -116,13 +118,13 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
     }
 
     @Override
-    public Query<T> limit(int limit) {
+    public Query<T> limit(long limit) {
         this.limit = limit;
         return this;
     }
 
     @Override
-    public Query<T> offset(int offset) {
+    public Query<T> offset(long offset) {
         this.offset = offset;
         return this;
     }
@@ -143,7 +145,7 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
     public Optional<T> first() {
 //        final long t0 = System.currentTimeMillis();
         init();
-        this.limit = 1;
+        this.limit = 1L;
         final String sql = this.buildQuerySql();
         if (this.config.isPrintSql()) {
             logger.info("exec sql: \"{}\", args: \"{}\"", sql, args);
@@ -181,7 +183,7 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
     @Override
     public long count() {
         init();
-        this.limit = 1;
+        this.limit = 1L;
         count = true;
         final String sql = this.buildQuerySql();
         if (this.config.isPrintSql()) {
@@ -303,39 +305,14 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
     }
 
     private void appendLimitAndOffset(StringBuilder sql) {
-        if (config.getDialect() == null) {
-            appendLimitAndOffsetForStandard(sql);
-            return;
+        LimitOffsetAppender limitOffsetAppender = config.getLimitOffsetAppender();
+        if (limitOffsetAppender == null) {
+            limitOffsetAppender = LimitOffsetAppenderFactory.byDialect(config.getDialect());
         }
-        switch (config.getDialect()) {
-            case STANDARD:
-                appendLimitAndOffsetForStandard(sql);
-                break;
-            case MYSQL:
-                appendLimitAndOffsetForMysql(sql);
-                break;
-            default:
-                logger.warn("unknown dialect: {}, handled as STANDARD", config.getDialect());
-                appendLimitAndOffsetForStandard(sql);
-                break;
-        }
+//        if (limitOffsetAppender == null) {
+//            throw new NullPointerException("limitOffsetAppender is null");
+//        }
+        limitOffsetAppender.appendLimitAndOffset(sql, limit, offset);
     }
 
-    private void appendLimitAndOffsetForStandard(StringBuilder sql) {
-        if (offset != null) {
-            sql.append(" offset ").append(offset);
-        }
-        if (limit != null) {
-            sql.append(" fetch first ").append(limit).append(" rows only");
-        }
-    }
-
-    private void appendLimitAndOffsetForMysql(StringBuilder sql) {
-        if (limit != null) {
-            sql.append(" limit ").append(limit).append(" ");
-        }
-        if (offset != null) {
-            sql.append(" offset ").append(offset).append(" ");
-        }
-    }
 }

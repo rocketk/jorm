@@ -7,4 +7,5 @@ package com.github.rocketk.jorm.dialect;
 public enum Dialect {
     STANDARD,
     MYSQL,
+    DERBY,
 }
