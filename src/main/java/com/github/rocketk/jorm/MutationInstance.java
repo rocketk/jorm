@@ -1,7 +1,7 @@
 package com.github.rocketk.jorm;
 
 import com.github.rocketk.jorm.conf.Config;
-import com.github.rocketk.jorm.err.JormUpdateException;
+import com.github.rocketk.jorm.err.JormMutationException;
 import com.github.rocketk.jorm.err.WhereClauseAbsentException;
 import com.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import com.google.common.collect.Lists;
@@ -22,7 +22,7 @@ import static com.github.rocketk.jorm.util.ReflectionUtil.*;
  * @author pengyu
  * @date 2022/3/28
  */
-public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Update<T> {
+public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mutation<T> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     //    private Map<String, Object> args = new HashMap<>();
@@ -40,11 +40,11 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
     private final List<String> omittedColumns = Lists.newArrayList();
     private T object;
 
-    public UpdateInstance(DataSource ds, Config config, Class<T> model) {
+    public MutationInstance(DataSource ds, Config config, Class<T> model) {
         super(ds, config, model);
     }
 
-    public UpdateInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
+    public MutationInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
         super(ds, config, model, rowMapperFactory);
     }
 
@@ -132,32 +132,32 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
                 }
             } catch (IllegalAccessException e) {
                 logger.error(e.getMessage(), e);
-                throw new JormUpdateException(e);
+                throw new JormMutationException(e);
             }
         }
     }
 
     @Override
-    public Update<T> table(String table) {
+    public Mutation<T> table(String table) {
         this.table = table;
         return this;
     }
 
     @Override
-    public Update<T> omit(String... columns) {
+    public Mutation<T> omit(String... columns) {
         omittedColumns.addAll(Arrays.asList(columns));
         return this;
     }
 
     @Override
-    public Update<T> obj(T obj) {
+    public Mutation<T> obj(T obj) {
         this.model = (Class<T>) obj.getClass();
         this.object = obj;
         return this;
     }
 
     @Override
-    public Update<T> set(String column, Object value) {
+    public Mutation<T> set(String column, Object value) {
 //        this.args.put(column, value);
 //        this.argKeys.add(column);
 //        this.argValues.add(value);
@@ -166,7 +166,7 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
     }
 
     @Override
-    public Update<T> set(Map<String, Object> valuesMap) {
+    public Mutation<T> set(Map<String, Object> valuesMap) {
 //        this.args.putAll(valuesMap);
         Optional.ofNullable(valuesMap).ifPresent(m -> m.forEach(this::set));
 //        if (valuesMap != null && valuesMap.size() > 0) {
@@ -176,20 +176,20 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
     }
 
     @Override
-    public Update<T> where(String whereClause, Object... args) {
+    public Mutation<T> where(String whereClause, Object... args) {
         this.whereClause = whereClause;
         this.whereArgs = args;
         return this;
     }
 
     @Override
-    public Update<T> ignoreNoWhereClauseWarning(boolean ignoreNoWhereClauseWarning) {
+    public Mutation<T> ignoreNoWhereClauseWarning(boolean ignoreNoWhereClauseWarning) {
         this.ignoreNoWhereClauseWarning = ignoreNoWhereClauseWarning;
         return this;
     }
 
     @Override
-    public Update<T> shouldUpdateDeletedRows(boolean updateDeleted) {
+    public Mutation<T> shouldUpdateDeletedRows(boolean updateDeleted) {
         this.updateDeletedRows = updateDeleted;
         return this;
     }
@@ -207,7 +207,7 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
             setArgs(ps, this.argValues.toArray());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            throw new JormUpdateException(e);
+            throw new JormMutationException(e);
         }
     }
 
@@ -215,7 +215,7 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
     public long insertAndReturnFirstKey() {
         final long[] keys = this.insertAndReturnKeys();
         if (keys.length == 0) {
-            throw new JormUpdateException("at last 1 generated key is expected");
+            throw new JormMutationException("at last 1 generated key is expected");
         }
         return keys[0];
     }
@@ -233,7 +233,7 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
             setArgs(ps, this.argValues.toArray());
             final int affected = ps.executeUpdate();
             if (affected == 0) {
-                throw new JormUpdateException("failed to insert: " + this.table);
+                throw new JormMutationException("failed to insert: " + this.table);
             }
             try (final ResultSet generatedKeys = ps.getGeneratedKeys()) {
                 List<Long> keys = Lists.newArrayList();
@@ -243,7 +243,7 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
                 return keys.stream().mapToLong(Long::longValue).toArray();
             }
         } catch (SQLException e) {
-            throw new JormUpdateException(e);
+            throw new JormMutationException(e);
         }
     }
 
@@ -273,13 +273,13 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
             setArgs(ps, argValues.toArray());
             return ps.executeUpdate();
         } catch (SQLException e) {
-            throw new JormUpdateException(e);
+            throw new JormMutationException(e);
         }
     }
 
     private String buildInsertSql() {
         if (this.argKeys.size() == 0) {
-            throw new JormUpdateException("argKeys is empty while building the insertion sql");
+            throw new JormMutationException("argKeys is empty while building the insertion sql");
         }
         final StringBuilder sql = new StringBuilder();
         sql.append("insert into ").append(this.table).append(" (");
@@ -294,7 +294,7 @@ public class UpdateInstance<T> extends AbstractQueryInstance<T> implements Updat
 
     private String buildUpdateSql() {
         if (this.argKeys.size() == 0) {
-            throw new JormUpdateException("argKeys is empty while building the insert sql");
+            throw new JormMutationException("argKeys is empty while building the insert sql");
         }
         if (!this.ignoreNoWhereClauseWarning && StringUtils.isBlank(this.whereClause)) {
             throw new WhereClauseAbsentException("where clause is empty while building the update sql, please call ignoreNoWhereClauseWarning(true) if you don't want to see this warning");
