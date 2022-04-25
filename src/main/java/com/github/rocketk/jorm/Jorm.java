@@ -5,7 +5,9 @@ import com.github.rocketk.jorm.mapper.row.DefaultRowMapperFactory;
 import com.github.rocketk.jorm.mapper.row.RowMapperFactory;
 
 import javax.sql.DataSource;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static com.github.rocketk.jorm.conf.ConfigFactory.defaultConfig;
 
@@ -14,8 +16,8 @@ import static com.github.rocketk.jorm.conf.ConfigFactory.defaultConfig;
  * @date 2021/12/12
  */
 public class Jorm {
-    private DataSource ds;
-    private Config config;
+    private final DataSource ds;
+    private final Config config;
     private RowMapperFactory rowMapperFactory;
 
     public Jorm(DataSource ds) {
@@ -30,7 +32,7 @@ public class Jorm {
         init();
     }
 
-    public void init() {
+    private void init() {
         if (rowMapperFactory == null) {
             rowMapperFactory = new DefaultRowMapperFactory(config.getArrayDelimiter(), config.getJsonProvider());
         }
@@ -50,5 +52,9 @@ public class Jorm {
 
     public <T> Mutation<T> mutation(Class<T> model) {
         return new MutationInstance<>(ds, config, model, rowMapperFactory);
+    }
+
+    public Transaction transaction() {
+        return new Transaction(ds, config);
     }
 }

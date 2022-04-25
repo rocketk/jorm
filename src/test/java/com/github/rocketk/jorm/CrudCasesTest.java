@@ -418,4 +418,35 @@ public abstract class CrudCasesTest {
         final Optional<Employee2> e = db.query(Employee2.class).where("name=?", "Jack").shouldFindDeletedRows(true).first();
         assertFalse(e.isPresent());
     }
+
+    @Test
+    public void testTransaction() {
+        final Jorm db = createJorm();
+        final BigDecimal jackNewSalary = new BigDecimal("654321.00");
+        final BigDecimal benjaminNewSalary = new BigDecimal("123456.00");
+        final boolean success = db.transaction().operations(t -> {
+            t.mutation(Employee.class).where("name=?", "Jack").set("salary", jackNewSalary).update();
+            t.mutation(Employee.class).where("name=?", "Benjamin").set("salary", benjaminNewSalary).update();
+        }).commit();
+        assertTrue(success);
+        db.query(Employee.class).where("name=?", "Jack").first().ifPresent(e -> assertEquals(jackNewSalary, e.getSalary()));
+        db.query(Employee.class).where("name=?", "Benjamin").first().ifPresent(e -> assertEquals(benjaminNewSalary, e.getSalary()));
+    }
+
+    @Test
+    public void testTransaction_fail() {
+        final Jorm db = createJorm();
+        final BigDecimal jackNewSalary = new BigDecimal("654321.00");
+        final BigDecimal benjaminNewSalary = new BigDecimal("123456.00");
+        final boolean success = db.transaction().operations(t -> {
+            t.mutation(Employee.class).where("name=?", "Jack").set("salary", jackNewSalary).update();
+            t.mutation(Employee.class).where("name=?", "Benjamin").set("salary1", benjaminNewSalary).update();
+        }).onError((t, e) -> {
+            System.out.println("operation failed, caused by: " + e.getMessage());
+            t.rollback();
+        }).commit();
+        assertFalse(success);
+        db.query(Employee.class).where("name=?", "Jack").first().ifPresent(e -> assertNotEquals(jackNewSalary, e.getSalary()));
+        db.query(Employee.class).where("name=?", "Benjamin").first().ifPresent(e -> assertNotEquals(benjaminNewSalary, e.getSalary()));
+    }
 }

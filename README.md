@@ -22,7 +22,7 @@ JORM是一个基于JDBC的轻量级ORM工具。与Mybatis和Hibernate不同的�
 - [x] 更新时自动生成`created_at` `updated_at`
 - [x] 自定义`RowMapper`
 - [ ] 批量插入和更新
-- [ ] 事务
+- [x] 事务
 # 创建Jorm对象
 
 一个Jorm对象是对数据库进行所有操作的API入口，它仅需要一个`DataSource`，这里我们推荐使用阿里巴巴的`DruidDataSource`。
