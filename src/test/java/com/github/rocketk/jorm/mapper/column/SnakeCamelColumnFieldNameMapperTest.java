@@ -1,11 +1,13 @@
 package com.github.rocketk.jorm.mapper.column;
 
-import org.junit.Before;
-import org.junit.Test;
+
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author pengyu
@@ -29,7 +31,7 @@ public class SnakeCamelColumnFieldNameMapperTest {
 
     private SnakeCamelColumnFieldNameMapper mapper;
 
-    @Before
+    @BeforeEach
     public void before() {
         mapper = new SnakeCamelColumnFieldNameMapper();
     }

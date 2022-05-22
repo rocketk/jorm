@@ -8,10 +8,10 @@ import com.github.rocketk.jorm.conf.Config;
 import com.github.rocketk.jorm.conf.ConfigFactory;
 import com.github.rocketk.jorm.dialect.Dialect;
 import com.google.common.collect.Lists;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,19 +21,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author pengyu
  * @date 2022/3/24
  */
-@Ignore
+@Disabled
 public class DeprecatedJormMysqlTest {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static DruidDataSource ds;
     private static Jorm db;
 
-    @BeforeClass
+    @BeforeAll
     public static void before() throws SQLException {
         ds = new DruidDataSource();
         ds.setInitialSize(1);
@@ -51,7 +51,7 @@ public class DeprecatedJormMysqlTest {
         db = new Jorm(ds, config);
     }
 
-    @AfterClass
+    @AfterAll
     public static void after() {
         if (ds != null) {
             ds.close();

@@ -5,18 +5,21 @@ import com.github.rocketk.data.Employee;
 import com.github.rocketk.jorm.conf.Config;
 import com.github.rocketk.jorm.conf.ConfigFactory;
 import com.github.rocketk.jorm.dialect.Dialect;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Optional;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 /**
  * @author pengyu
  * @date 2022/4/6
  */
+@Disabled
 public class JormMysqlTest extends CrudCasesTest {
 
     @Override

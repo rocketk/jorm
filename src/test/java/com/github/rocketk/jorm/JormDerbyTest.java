@@ -5,24 +5,29 @@ import com.github.rocketk.data.Employee;
 import com.github.rocketk.jorm.conf.Config;
 import com.github.rocketk.jorm.conf.ConfigFactory;
 import com.github.rocketk.jorm.dialect.Dialect;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Optional;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 
 /**
  * @author pengyu
  * @date 2022/4/6
  */
+//@Disabled
 public class JormDerbyTest extends CrudCasesTest {
 
     @Override
     protected void initDataSourceInternally() throws SQLException, IOException {
         super.ds = BaseDataTest.createDataSourceForDerby();
+        System.out.println("initDataSourceInternally: " + this.hashCode());
+        Assertions.assertNotNull(super.ds, "initDataSourceInternally: dataSource is null");
         try {
             BaseDataTest.runScript(this.ds, "employee-derby-drop-table.sql");
         } catch (SQLException e) {
@@ -37,6 +42,7 @@ public class JormDerbyTest extends CrudCasesTest {
 
     @Override
     protected Jorm createJorm() {
+        Assertions.assertNotNull(super.ds, "createJorm: dataSource is null");
         final Config config = ConfigFactory.defaultConfig();
         config.setDialect(Dialect.DERBY);
         return new Jorm(ds, config);

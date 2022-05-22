@@ -5,9 +5,7 @@ import com.github.rocketk.jorm.mapper.row.DefaultRowMapperFactory;
 import com.github.rocketk.jorm.mapper.row.RowMapperFactory;
 
 import javax.sql.DataSource;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static com.github.rocketk.jorm.conf.ConfigFactory.defaultConfig;
 
