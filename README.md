@@ -214,7 +214,7 @@ public class Employee2 {
 #### Enum
 There are some variables, you want to use enum types in the Java program, but there is no enum type in the database.  
 At this time, you can use the following two ways to solve the problem.
-##### Default enum value
+##### Default Enum value
 Suppose you have the enum type `AcademicDegree` representing the degree of an employee, and its type is defined as follows:
 ```java
 public enum AcademicDegree {
@@ -229,7 +229,7 @@ Jorm will call the `name()` method of the type field as its actual value in the 
 This way does not require you to write additional conversion methods, but the disadvantage is that the database must use a string type to store this field, such as `varchar` or `char`.
 If you want to store in non-string form, e.g. integer, then you can look at the second way, Custom Enum Value.
 
-##### 自定义枚举值
+##### Custom Enum value
 Suppose you have an enum type `Gender` representing the gender of an employee, and its type is defined as follows:
 ```java
 @JormCustomEnum
@@ -270,7 +270,6 @@ When a field is of type array or List, Jorm will automatically complete the conv
 
 #### Json
 
-当一个字段的类型定义中，含有`@JormJsonObject`时，那么Jorm会在数据库存取操作时自动为它完成Json序列化与反序列化（数据库中的字段类型为字符串，可以是`text` `varchar`等等），例如下面这个类
 When the type definition of a field contains `@JormJsonObject`, then Jorm will automatically complete Json serialization and deserialization for it during database query/update operations (the field type in the database is a string, which can be `text` `varchar`, etc.), such as the following class
 
 ```java
