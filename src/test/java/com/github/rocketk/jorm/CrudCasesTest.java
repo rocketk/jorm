@@ -258,10 +258,10 @@ public abstract class CrudCasesTest {
     @Test
     public void testQuery_withSoftDeleteEnabled() {
         final Jorm db = createJorm();
-        assertFalse(db.query(Employee.class).where("name=?", "李四").first().isPresent());
-        assertTrue(db.query(Employee.class).where("name=?", "李四").shouldFindDeletedRows(true).first().isPresent());
-        assertTrue(db.query(Employee2.class).where("name=?", "李四").first().isPresent());
-        assertTrue(db.query(Employee2.class).where("name=?", "李四").shouldFindDeletedRows(false).first().isPresent());
+        assertFalse(db.query(Employee.class).where("name=?", "Bruce").first().isPresent());
+        assertTrue(db.query(Employee.class).where("name=?", "Bruce").shouldFindDeletedRows(true).first().isPresent());
+        assertTrue(db.query(Employee2.class).where("name=?", "Bruce").first().isPresent());
+        assertTrue(db.query(Employee2.class).where("name=?", "Bruce").shouldFindDeletedRows(false).first().isPresent());
     }
 
     @Test

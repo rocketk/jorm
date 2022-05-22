@@ -202,7 +202,7 @@ public class DeprecatedJormMysqlTest {
     public void insert_withObject_withGeneratedKeys_firstKey() {
         final Employee employee = new Employee();
         final Date now = new Date();
-        employee.setName("李四");
+        employee.setName("Bruce");
         employee.setGender(Gender.FEMALE);
         employee.setAcademicDegree(AcademicDegree.MASTER);
         employee.setTags(new String[]{"admin leader"});

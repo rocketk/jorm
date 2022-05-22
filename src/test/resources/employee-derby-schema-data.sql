@@ -56,7 +56,7 @@ values ( '张三', 0, 'BACHELOR', 1000.90, '2008-01-01', 'student', null
 
 insert into employee (name, gender, academic_degree, salary, birth_date, tags, languages, attributes,
                       during_internship, profile, created_at, updated_at, deleted_at)
-values ( '李四', 0, 'BACHELOR', 1000.90, '2008-01-01', 'student', null
+values ( 'Bruce', 0, 'BACHELOR', 1000.90, '2008-01-01', 'student', null
        , null, 1
        , ''
        , '2022-04-07 15:03:45'

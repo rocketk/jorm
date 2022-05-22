@@ -56,7 +56,7 @@ values ( '张三', 0, 'BACHELOR', 1000.90, to_date('2008-01-01', 'YYYY-MM-DD'), 
 
 insert into employee (name, gender, academic_degree, salary, birth_date, tags, languages, attributes,
                       during_internship, profile, created_at, updated_at, deleted_at)
-values ( '李四', 0, 'BACHELOR', 1000.90, to_date('2008-01-01', 'YYYY-MM-DD'), 'student', null
+values ( 'Bruce', 0, 'BACHELOR', 1000.90, to_date('2008-01-01', 'YYYY-MM-DD'), 'student', null
        , null, 1
        , ''
        , to_timestamp('2022-04-07 15:03:45', 'YYYY-MM-DD HH:MI:SS')
