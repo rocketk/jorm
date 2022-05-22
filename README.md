@@ -1,3 +1,4 @@
+[中文](README-CN.md)
 # Introduction
 
 JORM is a lightweight JDBC-based ORM tool.  
