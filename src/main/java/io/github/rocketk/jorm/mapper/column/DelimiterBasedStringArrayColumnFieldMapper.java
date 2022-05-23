@@ -5,7 +5,6 @@ import java.util.List;
 
 /**
  * @author pengyu
- * @date 2021/12/16
  */
 public class DelimiterBasedStringArrayColumnFieldMapper implements StringArrayColumnFieldMapper {
     private final String delimiter;

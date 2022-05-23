@@ -7,7 +7,6 @@ import java.util.Set;
 
 /**
  * @author pengyu
- * @date 2021/12/15
  */
 @FunctionalInterface
 public interface RowMapper<T> {

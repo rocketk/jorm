@@ -28,7 +28,6 @@ import static io.github.rocketk.jorm.util.ReflectionUtil.*;
 
 /**
  * @author pengyu
- * @date 2022/3/29
  */
 public abstract class AbstractQueryInstance<T> {
     protected final TableModelNameMapper tableModelNameMapper = new SnakeUpperTableModelNameMapper();

@@ -1,5 +1,7 @@
 package io.github.rocketk.jorm;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import io.github.rocketk.jorm.conf.Config;
 import io.github.rocketk.jorm.dialect.Dialect;
 import io.github.rocketk.jorm.dialect.LimitOffsetAppender;
@@ -7,8 +9,6 @@ import io.github.rocketk.jorm.dialect.LimitOffsetAppenderFactory;
 import io.github.rocketk.jorm.err.JormQueryException;
 import io.github.rocketk.jorm.mapper.row.RowMapper;
 import io.github.rocketk.jorm.mapper.row.RowMapperFactory;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,14 +25,13 @@ import java.util.Set;
 
 /**
  * @author pengyu
- * @date 2021/12/13
  */
 public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<T> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    protected Object[] args;
     private Set<String> selectedColumns = Sets.newHashSet();
     private Set<String> omittedColumns = Sets.newHashSet();
     private String whereClause;
-    protected Object[] args;
     //    private List<Object> whereClauseArgs = new ArrayList<>();
     private String orderByClause;
     private Long limit;

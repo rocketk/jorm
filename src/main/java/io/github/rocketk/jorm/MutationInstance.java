@@ -1,11 +1,11 @@
 package io.github.rocketk.jorm;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import io.github.rocketk.jorm.conf.Config;
 import io.github.rocketk.jorm.err.JormMutationException;
 import io.github.rocketk.jorm.err.WhereClauseAbsentException;
 import io.github.rocketk.jorm.mapper.row.RowMapperFactory;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,24 +20,22 @@ import static io.github.rocketk.jorm.util.ReflectionUtil.*;
 
 /**
  * @author pengyu
- * @date 2022/3/28
  */
 public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mutation<T> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
+    private final List<String> argKeys = Lists.newArrayList();
+    private final List<Object> argValues = Lists.newArrayList();
+    private final Map<String, Object> argsMap = Maps.newLinkedHashMap();
+    private final List<String> omittedColumns = Lists.newArrayList();
     //    private Map<String, Object> args = new HashMap<>();
 //    private final int MODE_INSERT = 0;
 //    private final int MODE_UPDATE = 1;
 //    private final int MODE_DELETE = 2;
     private Mode mode; // 0 for insert, 1 for update
-    private final List<String> argKeys = Lists.newArrayList();
-    private final List<Object> argValues = Lists.newArrayList();
     private String whereClause;
     private Object[] whereArgs;
     private boolean ignoreNoWhereClauseWarning;
     private boolean updateDeletedRows;
-    private final Map<String, Object> argsMap = Maps.newLinkedHashMap();
-    private final List<String> omittedColumns = Lists.newArrayList();
     private T object;
 
     public MutationInstance(DataSource ds, Config config, Class<T> model) {

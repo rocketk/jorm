@@ -2,7 +2,6 @@ package io.github.rocketk.jorm.dialect;
 
 /**
  * @author pengyu
- * @date 2022/4/23
  */
 public class LimitOffsetAppenderFactory {
     public static LimitOffsetAppender byDialect(Dialect dialect) {

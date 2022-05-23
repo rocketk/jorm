@@ -11,7 +11,6 @@ import java.util.Date;
 
 /**
  * @author pengyu
- * @date 2022/3/29
  */
 public class JdbcUtil {
 
@@ -132,6 +131,7 @@ public class JdbcUtil {
 
     /**
      * 设置参数，不会对参数进行转换，如果设置成功则返回 true
+     *
      * @param ps
      * @param parameterIndex
      * @param arg

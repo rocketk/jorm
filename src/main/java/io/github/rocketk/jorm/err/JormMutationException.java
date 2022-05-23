@@ -2,7 +2,6 @@ package io.github.rocketk.jorm.err;
 
 /**
  * @author pengyu
- * @date 2021/12/13
  */
 public class JormMutationException extends RuntimeException {
     public JormMutationException() {

@@ -1,11 +1,11 @@
 package io.github.rocketk.jorm.mapper.row;
 
-import io.github.rocketk.jorm.err.JormQueryException;
+import com.google.common.collect.Maps;
 import io.github.rocketk.jorm.anno.JormCustomEnum;
+import io.github.rocketk.jorm.err.JormQueryException;
 import io.github.rocketk.jorm.json.JsonMapper;
 import io.github.rocketk.jorm.mapper.column.ColumnFieldNameMapper;
 import io.github.rocketk.jorm.mapper.column.StringArrayColumnFieldMapper;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
@@ -21,7 +21,6 @@ import static io.github.rocketk.jorm.util.ReflectionUtil.*;
 
 /**
  * @author pengyu
- * @date 2021/12/16
  */
 public class DefaultRowMapper<T> implements RowMapper<T> {
     private final ColumnFieldNameMapper columnFieldNameMapper;
@@ -101,7 +100,7 @@ public class DefaultRowMapper<T> implements RowMapper<T> {
             }
             // 先判断 JormColumn 如果有值，则以 JormColumn 中的 name() 为准
             // 如果没有值，则根据 fieldName 推断出列名
-            final String columnName = columnName(field).orElseGet(()->columnFieldNameMapper.fieldNameToColumnName(field.getName()));
+            final String columnName = columnName(field).orElseGet(() -> columnFieldNameMapper.fieldNameToColumnName(field.getName()));
             this.columnFieldMap.put(columnName, field);
         }
     }

@@ -2,7 +2,6 @@ package io.github.rocketk.jorm.json;
 
 /**
  * @author pengyu
- * @date 2022/3/31
  */
 public class JsonException extends RuntimeException {
     public JsonException() {

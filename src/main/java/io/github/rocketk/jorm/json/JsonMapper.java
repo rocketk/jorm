@@ -2,8 +2,8 @@ package io.github.rocketk.jorm.json;
 
 /**
  * Json的序列化和反序列化工具
+ *
  * @author pengyu
- * @date 2021/12/22
  */
 public interface JsonMapper {
     /**

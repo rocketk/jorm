@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 
 /**
  * @author pengyu
- * @date 2022/4/24
  */
 public class StickyConnectionDataSourceWrapper implements DataSource {
     private final DataSource realDataSource;
@@ -56,13 +55,13 @@ public class StickyConnectionDataSourceWrapper implements DataSource {
     }
 
     @Override
-    public void setLoginTimeout(int seconds) throws SQLException {
-        realDataSource.setLoginTimeout(seconds);
+    public int getLoginTimeout() throws SQLException {
+        return realDataSource.getLoginTimeout();
     }
 
     @Override
-    public int getLoginTimeout() throws SQLException {
-        return realDataSource.getLoginTimeout();
+    public void setLoginTimeout(int seconds) throws SQLException {
+        realDataSource.setLoginTimeout(seconds);
     }
 
     @Override

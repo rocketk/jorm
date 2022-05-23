@@ -2,7 +2,6 @@ package io.github.rocketk.jorm.err;
 
 /**
  * @author pengyu
- * @date 2021/12/13
  */
 public class JormQueryException extends RuntimeException {
     public JormQueryException() {

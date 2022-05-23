@@ -19,14 +19,13 @@ import static io.github.rocketk.jorm.conf.ConfigFactory.defaultConfig;
 
 /**
  * @author pengyu
- * @date 2022/4/24
  */
 public class Transaction {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Config config;
     private StickyConnectionDataSourceWrapper ds;
     private TransactionalConnectionWrapper singleConnection;
     private boolean hasRollback;
-    private final Config config;
     private RowMapperFactory rowMapperFactory;
 
     private Consumer<Transaction> operations;

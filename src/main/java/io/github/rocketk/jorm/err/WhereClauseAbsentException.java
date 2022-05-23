@@ -2,7 +2,6 @@ package io.github.rocketk.jorm.err;
 
 /**
  * @author pengyu
- * @date 2022/4/19
  */
 public class WhereClauseAbsentException extends JormMutationException {
     public WhereClauseAbsentException() {

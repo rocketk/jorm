@@ -2,7 +2,6 @@ package io.github.rocketk.jorm.mapper.row;
 
 /**
  * @author pengyu
- * @date 2022/3/24
  */
 public class RowMapperException extends RuntimeException {
     public RowMapperException() {

@@ -6,7 +6,6 @@ import io.github.rocketk.jorm.json.jackson.JacksonMapper;
 
 /**
  * @author pengyu
- * @date 2022/3/24
  */
 public class JsonMapperFactory {
     public static JsonMapper getJsonMapper(final JsonProvider jsonProvider) {

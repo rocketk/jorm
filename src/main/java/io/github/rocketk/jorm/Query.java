@@ -8,7 +8,6 @@ import java.util.Optional;
 
 /**
  * @author pengyu
- * @date 2021/12/12
  */
 public interface Query<T> {
 

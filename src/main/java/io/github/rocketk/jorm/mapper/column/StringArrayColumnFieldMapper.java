@@ -2,7 +2,6 @@ package io.github.rocketk.jorm.mapper.column;
 
 /**
  * @author pengyu
- * @date 2022/3/24
  */
 public interface StringArrayColumnFieldMapper {
     /**

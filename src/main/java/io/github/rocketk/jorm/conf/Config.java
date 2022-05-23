@@ -1,13 +1,13 @@
 package io.github.rocketk.jorm.conf;
 
-import io.github.rocketk.jorm.dialect.*;
+import io.github.rocketk.jorm.dialect.Dialect;
+import io.github.rocketk.jorm.dialect.LimitOffsetAppender;
 import io.github.rocketk.jorm.json.JsonProvider;
 
 import static io.github.rocketk.jorm.json.JsonProvider.JACKSON;
 
 /**
  * @author pengyu
- * @date 2022/3/24
  */
 public class Config {
 //    public static final String JACKSON = "jackson";

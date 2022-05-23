@@ -7,12 +7,12 @@ import java.lang.annotation.Target;
 
 /**
  * @author pengyu
- * @date 2022/3/24
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JormIgnore {
     boolean ignoreReadFromDb() default true;
+
     boolean ignoreWriteToDb() default true;
 
 }

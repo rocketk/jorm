@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author pengyu
- * @date 2021/12/22
  */
 public class FastjsonMapper implements io.github.rocketk.jorm.json.JsonMapper {
     @Override

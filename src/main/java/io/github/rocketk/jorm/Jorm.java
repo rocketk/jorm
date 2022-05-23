@@ -11,7 +11,6 @@ import static io.github.rocketk.jorm.conf.ConfigFactory.defaultConfig;
 
 /**
  * @author pengyu
- * @date 2021/12/12
  */
 public class Jorm {
     private final DataSource ds;
