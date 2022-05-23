@@ -122,7 +122,7 @@ Use `JormColumn(name = "column_name")` to specify column name.
 
 #### Automatic calculation
 
-see `com.github.rocketk.jorm.mapper.column.SnakeCamelColumnFieldNameMapper`:
+see `io.github.rocketk.jorm.mapper.column.SnakeCamelColumnFieldNameMapper`:
 
 ```java
 public class SnakeCamelColumnFieldNameMapper implements ColumnFieldNameMapper {

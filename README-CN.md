@@ -129,7 +129,7 @@ JORM提供了多种方式的映射方案
 
 ### 基于字段名和列名自动计算出对应的列名和字段名
 
-参见`com.github.rocketk.jorm.mapper.column.SnakeCamelColumnFieldNameMapper`:
+参见`io.github.rocketk.jorm.mapper.column.SnakeCamelColumnFieldNameMapper`:
 
 ```java
 public class SnakeCamelColumnFieldNameMapper implements ColumnFieldNameMapper {

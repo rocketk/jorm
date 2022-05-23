@@ -1,0 +1,69 @@
+package io.github.rocketk.jorm.conf;
+
+import io.github.rocketk.jorm.dialect.*;
+import io.github.rocketk.jorm.json.JsonProvider;
+
+import static io.github.rocketk.jorm.json.JsonProvider.JACKSON;
+
+/**
+ * @author pengyu
+ * @date 2022/3/24
+ */
+public class Config {
+//    public static final String JACKSON = "jackson";
+//    public static final String GSON = "gson";
+//    public static final String FASTJSON = "fastjson";
+    /**
+     * 数组分隔符，用来将数据库列中的字符串值分隔成Java中的字符串数组对象
+     */
+    private String arrayDelimiter = " ";
+    /**
+     * 使用何种JSON序列化器
+     * jackson, gson, fastjson
+     */
+    private JsonProvider jsonProvider = JACKSON;
+    private LimitOffsetAppender limitOffsetAppender;
+    private boolean printSql = true;
+    private Dialect dialect = Dialect.STANDARD;
+
+
+    public String getArrayDelimiter() {
+        return arrayDelimiter;
+    }
+
+    public void setArrayDelimiter(String arrayDelimiter) {
+        this.arrayDelimiter = arrayDelimiter;
+    }
+
+    public JsonProvider getJsonProvider() {
+        return jsonProvider;
+    }
+
+    public void setJsonProvider(JsonProvider jsonProvider) {
+        this.jsonProvider = jsonProvider;
+    }
+
+    public boolean isPrintSql() {
+        return printSql;
+    }
+
+    public void setPrintSql(boolean printSql) {
+        this.printSql = printSql;
+    }
+
+    public Dialect getDialect() {
+        return dialect;
+    }
+
+    public void setDialect(Dialect dialect) {
+        this.dialect = dialect;
+    }
+
+    public LimitOffsetAppender getLimitOffsetAppender() {
+        return limitOffsetAppender;
+    }
+
+    public void setLimitOffsetAppender(LimitOffsetAppender limitOffsetAppender) {
+        this.limitOffsetAppender = limitOffsetAppender;
+    }
+}
