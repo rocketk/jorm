@@ -32,10 +32,10 @@ public class JdbcUtil {
     };
 
     /**
-     * 判断字段类型是否支持从JDBC类型直接转换成普通Java类型
+     * To determine whether the field type is supported for directly parsing from a JDBC type
      *
-     * @param fieldType
-     * @return
+     * @param fieldType the type of the field
+     * @return true if the type is supported
      */
     public static boolean isSupportedTypeByJdbc(Class fieldType) {
         for (Class c : supportedType) {
@@ -130,13 +130,13 @@ public class JdbcUtil {
     }
 
     /**
-     * 设置参数，不会对参数进行转换，如果设置成功则返回 true
+     * To set the argument into the PreparedStatement object and return true if no exception thrown.
      *
-     * @param ps
-     * @param parameterIndex
-     * @param arg
-     * @return true 设置成功； false 设置失败，类型不对
-     * @throws SQLException
+     * @param ps             PreparedStatement object
+     * @param parameterIndex the index of the argument, starts from 1
+     * @param arg            the argument
+     * @return true if no exception thrown; false if the type of the argument is not supported
+     * @throws SQLException if any exception thrown from method PreparedStatement.setXXX()
      */
     public static boolean setArgWithoutConversion(PreparedStatement ps, int parameterIndex, Object arg) throws SQLException {
         if (arg == null) {

@@ -1,5 +1,6 @@
 package io.github.rocketk.jorm;
 
+import io.github.rocketk.jorm.anno.JormTable;
 import io.github.rocketk.jorm.dialect.Dialect;
 import io.github.rocketk.jorm.mapper.row.RowMapper;
 
@@ -11,21 +12,63 @@ import java.util.Optional;
  */
 public interface Query<T> {
 
+    /**
+     * Specify the custom implementation of {@link RowMapper}.
+     *
+     * @param rowMapper the custom implementation of {@link RowMapper}.
+     * @return the instance of Query
+     */
     Query<T> rowMapper(RowMapper<T> rowMapper);
 
     /**
-     * 当columns非空时，将仅查询给定的这些columns
-     * 如果你的数据表中的列比较多，而你有需要高频的查询少数几个列的时候，这个方法将会有效降低数据库的IO压力
+     * If there are many columns in your table, but only a few columns are frequently used in most query cases,
+     * this method will effectively reduce the IO pressure of the database.
+     * <p>
+     * If the columns are not empty, then only the given columns will be queried.
+     * <p>
+     * Example:
+     * <pre>{@code
+     *   query.select("name", "age");
+     * }</pre>
      *
-     * @param columns
-     * @return
+     * @param columns the column names which are expected returned from the database. null means all columns.
+     * @return the instance of Query
      */
     Query<T> select(String... columns);
 
+    /**
+     * Specify the column names that should not be mapped from JDBC to the field of the target object.
+     * <p>
+     * However, it should be noted that if `omit()` is used without using `select()`,
+     * the column clause in SQL will still be `*`, which means that JDBC will still return all values of all columns.
+     * But JORM will omit the mapping of columns specified in `omit()` arguments.
+     * <p>
+     * Example:
+     * <pre>{@code
+     *   query.omit("password");
+     * }</pre>
+     *
+     * @param columns the column names which are omitted for parsing.
+     * @return the instance of Query
+     */
     Query<T> omit(String... columns);
 
+    /**
+     * Specify the table name.
+     * If the table name is not empy, JORM will ignore {@link JormTable#name()}.
+     *
+     * @param table the table name
+     * @return the instance of Query
+     */
     Query<T> table(String table);
 
+    /**
+     * Specify the where clause
+     *
+     * @param whereClause the where clause
+     * @param args        the arguments of where clause
+     * @return the instance of Query
+     */
     Query<T> where(String whereClause, Object... args);
 
     Query<T> rawSql(String rawSql, Object... args);
@@ -39,10 +82,12 @@ public interface Query<T> {
     Query<T> dialect(Dialect dialect);
 
     /**
-     * 只有当 model 有指定 JormTable 注解，并且 enableSoftDelete() == true 时，此字段才起作用。
+     * This method only works when the model has the specified annotation {@link JormTable}
+     * with {@code enableSoftDelete() == true}.
      *
-     * @param findDeleted 是否应当查询已删除的行
-     * @return
+     * @param findDeleted true if you want the deleted rows to be returned but you have added annotation
+     *                    {@link JormTable} with {@code enableSoftDelete() == true}
+     * @return the instance of Query
      */
     Query<T> shouldFindDeletedRows(boolean findDeleted);
 

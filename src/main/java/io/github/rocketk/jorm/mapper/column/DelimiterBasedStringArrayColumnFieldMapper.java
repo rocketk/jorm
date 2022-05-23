@@ -47,40 +47,40 @@ public class DelimiterBasedStringArrayColumnFieldMapper implements StringArrayCo
 
     @Override
     @SuppressWarnings("unchecked")
-    public String fieldToColumn(Object array) {
-        if (array == null) {
+    public String fieldToColumn(Object fieldValue) {
+        if (fieldValue == null) {
             return null;
         }
-        if (array instanceof String[]) {
-            String[] arrayObject = (String[]) array;
+        if (fieldValue instanceof String[]) {
+            String[] arrayObject = (String[]) fieldValue;
             return String.join(this.delimiter, arrayObject);
         }
-        if (array instanceof Integer[]) {
-            Integer[] arrayObject = (Integer[]) array;
+        if (fieldValue instanceof Integer[]) {
+            Integer[] arrayObject = (Integer[]) fieldValue;
             return String.join(this.delimiter, Arrays.stream(arrayObject).map(Object::toString).toArray(String[]::new));
         }
-        if (array instanceof int[]) {
-            int[] arrayObject = (int[]) array;
+        if (fieldValue instanceof int[]) {
+            int[] arrayObject = (int[]) fieldValue;
             return String.join(this.delimiter, Arrays.stream(arrayObject).mapToObj(i -> Integer.valueOf(i).toString()).toArray(String[]::new));
         }
-        if (array instanceof Long[]) {
-            Long[] arrayObject = (Long[]) array;
+        if (fieldValue instanceof Long[]) {
+            Long[] arrayObject = (Long[]) fieldValue;
             return String.join(this.delimiter, Arrays.stream(arrayObject).map(Object::toString).toArray(String[]::new));
         }
-        if (array instanceof long[]) {
-            long[] arrayObject = (long[]) array;
+        if (fieldValue instanceof long[]) {
+            long[] arrayObject = (long[]) fieldValue;
             return String.join(this.delimiter, Arrays.stream(arrayObject).mapToObj(i -> Long.valueOf(i).toString()).toArray(String[]::new));
         }
-        if (array instanceof Boolean[]) {
-            Boolean[] arrayObject = (Boolean[]) array;
+        if (fieldValue instanceof Boolean[]) {
+            Boolean[] arrayObject = (Boolean[]) fieldValue;
             return String.join(this.delimiter, Arrays.stream(arrayObject).map(Object::toString).toArray(String[]::new));
         }
-        if (array instanceof List) {
-            List list = (List) array;
+        if (fieldValue instanceof List) {
+            List list = (List) fieldValue;
             return String.join(this.delimiter, list);
         }
         // todo 支持更多的数组类型
-        throw new CannotParseColumnToFieldException("unsupported fieldType: " + array.getClass().getCanonicalName());
+        throw new CannotParseColumnToFieldException("unsupported fieldType: " + fieldValue.getClass().getCanonicalName());
 //        if (array instanceof int[]) {
 //            int[] arrayObject = (int[]) array;
 //            return String.join(this.delimiter, Arrays.stream(arrayObject).map((int i)->Integer.valueOf(i)).toArray(String[]::new));

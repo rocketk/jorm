@@ -5,18 +5,20 @@ package io.github.rocketk.jorm.mapper.column;
  */
 public interface StringArrayColumnFieldMapper {
     /**
-     * 将列中的字符串值转换成字符串数组
+     * read string value from database and convert it into Java object in type of T
      *
-     * @param columnValue 从列中读取的字符串值
-     * @return
+     * @param columnValue string value read from database
+     * @param fieldType the type of the field
+     * @param <T> the type of the field. Array or List
+     * @return the field object in type of T
      */
     <T> T columnToField(String columnValue, Class<T> fieldType);
 
     /**
-     * 将Java字段的值转换成字符串
+     * convert the value of the field into a string for storing in database
      *
-     * @param array Java字段值--数组
-     * @return
+     * @param fieldValue the value of the field. Array or List
+     * @return the string value that will be written into database
      */
-    String fieldToColumn(Object array);
+    String fieldToColumn(Object fieldValue);
 }

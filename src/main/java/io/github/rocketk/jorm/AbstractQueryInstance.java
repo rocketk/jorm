@@ -108,8 +108,8 @@ public abstract class AbstractQueryInstance<T> {
     }
 
     /**
-     * @param ps
-     * @param args 基本类型或枚举类型
+     * @param ps PreparedStatement object
+     * @param args the arguments. base type or Enum
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected void setArgs(PreparedStatement ps, Object[] args) {

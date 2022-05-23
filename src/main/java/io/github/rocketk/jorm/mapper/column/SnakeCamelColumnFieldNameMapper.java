@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 public class SnakeCamelColumnFieldNameMapper implements ColumnFieldNameMapper {
     /**
      * examples:
+     * <pre>{@code
      * "null" -> "null"
      * "" -> ""
      * "a" -> "a"
@@ -16,9 +17,11 @@ public class SnakeCamelColumnFieldNameMapper implements ColumnFieldNameMapper {
      * "app_i_d" -> "appID"
      * "redirect_u_r_i" -> "redirectURI"
      * "redirect_uri" -> "redirectUri"
+     * }
+     * </pre>
      *
-     * @param columnName
-     * @return
+     * @param columnName the name of the column
+     * @return the calculated field name of the given column
      */
     @Override
     public String columnNameToFieldName(String columnName) {
@@ -30,6 +33,7 @@ public class SnakeCamelColumnFieldNameMapper implements ColumnFieldNameMapper {
 
     /**
      * examples:
+     * <pre>{@code
      * "null" -> "null"
      * "" -> ""
      * "a" -> "a"
@@ -37,9 +41,11 @@ public class SnakeCamelColumnFieldNameMapper implements ColumnFieldNameMapper {
      * "appID" -> "app_i_d"
      * "redirectURI" -> "redirect_u_r_i"
      * "redirectUri" -> "redirect_uri"
+     * }
+     * </pre>
      *
-     * @param fieldName
-     * @return
+     * @param fieldName the name of the field
+     * @return the calculated column name of the given field
      */
     @Override
     public String fieldNameToColumnName(String fieldName) {

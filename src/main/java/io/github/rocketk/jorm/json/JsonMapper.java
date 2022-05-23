@@ -1,26 +1,26 @@
 package io.github.rocketk.jorm.json;
 
 /**
- * Json的序列化和反序列化工具
+ * Json tool for marshalling and unmarshalling
  *
  * @author pengyu
  */
 public interface JsonMapper {
     /**
-     * 将一个字符串还原为一个对象
+     * To unmarshal a string to a Java object
      *
-     * @param content json字符串
-     * @param clazz   类型
-     * @param <T>     需要还原的对象类型
+     * @param content the string in JSON format
+     * @param clazz   type class
+     * @param <T>     the expected type of the target object
      * @return
      */
     <T> T unmarshal(String content, Class<T> clazz);
 
     /**
-     * 将一个对象序列化为一个字符串
+     * To marshal a Java object to a string in JSON format
      *
-     * @param obj
-     * @return
+     * @param obj the object to be marshaled
+     * @return the string in JSON format
      */
     String marshal(Object obj);
 }
