@@ -10,7 +10,26 @@
 
     <name>jorm</name>
     <url>https://github.com/rocketk/jorm</url>
-
+    <description>
+        JORM is a lightweight JDBC-based ORM tool. Different from Mybatis and Hibernate, JORM encourages
+        developers to directly use SQL to operate data, JORM will handle the other boring works automatically.
+    </description>
+    <scm>
+        <url>https://github.com/rocketk/jorm</url>
+        <connection>https://github.com/rocketk/jorm.git</connection>
+    </scm>
+    <developers>
+        <developer>
+            <name>PengYu</name>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -43,12 +62,12 @@
             <scope>test</scope>
             <version>${slf4j.version}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.slf4j</groupId>-->
-<!--            <artifactId>slf4j-log4j12</artifactId>-->
-<!--            <scope>test</scope>-->
-<!--            <version>${slf4j.version}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.slf4j</groupId>-->
+        <!--            <artifactId>slf4j-log4j12</artifactId>-->
+        <!--            <scope>test</scope>-->
+        <!--            <version>${slf4j.version}</version>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
@@ -67,12 +86,12 @@
             <scope>test</scope>
             <version>${log4j.version}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>ch.vorburger.mariaDB4j</groupId>-->
-<!--            <artifactId>mariaDB4j</artifactId>-->
-<!--            <version>2.5.3</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>ch.vorburger.mariaDB4j</groupId>-->
+        <!--            <artifactId>mariaDB4j</artifactId>-->
+        <!--            <version>2.5.3</version>-->
+        <!--            <scope>test</scope>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
@@ -97,20 +116,20 @@
             <version>8.0.28</version>
             <scope>test</scope>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>ojdbc6</groupId>-->
-<!--            <artifactId>ojdbc6</artifactId>-->
-<!--            <version>11.2.0.4.0</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>ojdbc6</groupId>-->
+        <!--            <artifactId>ojdbc6</artifactId>-->
+        <!--            <version>11.2.0.4.0</version>-->
+        <!--            <scope>test</scope>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.fasterxml.jackson.core</groupId>-->
-<!--            <artifactId>jackson-annotations</artifactId>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.fasterxml.jackson.core</groupId>-->
+        <!--            <artifactId>jackson-annotations</artifactId>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -130,11 +149,11 @@
             <artifactId>guava</artifactId>
             <version>30.0-jre</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <artifactId>commons-io</artifactId>-->
-<!--            <groupId>commons-io</groupId>-->
-<!--            <version>2.7</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <artifactId>commons-io</artifactId>-->
+        <!--            <groupId>commons-io</groupId>-->
+        <!--            <version>2.7</version>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -277,8 +296,33 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.8.2</version>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-deploy-plugin</artifactId>-->
+            <!--                <version>2.8.2</version>-->
+            <!--            </plugin>-->
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
             </plugin>
         </plugins>
     </build>
