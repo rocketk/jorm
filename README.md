@@ -1,3 +1,9 @@
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.rocketk/jorm.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.rocketk%22%20AND%20a:%22jorm%22)
+[![Issues](https://img.shields.io/github/issues/rocketk/jorm)](https://github.com/rocketk/jorm/issues)
+[![Forks](https://img.shields.io/github/forks/rocketk/jorm)](https://github.com/rocketk/jorm/issues)
+[![Stars](https://img.shields.io/github/stars/rocketk/jorm)](https://github.com/rocketk/jorm/issues)
+[![License](https://img.shields.io/github/license/rocketk/jorm)](https://github.com/rocketk/jorm/issues)
+
 [中文](README-CN.md)
 # Introduction
 
@@ -25,6 +31,19 @@ Different from Mybatis and Hibernate, JORM encourages developers to directly use
 - [x] Transaction
 
 # Get Started
+
+## Install
+
+Just add the dependency to your `pom.xml`
+
+```xml
+<dependency>
+    <groupId>io.github.rocketk</groupId>
+    <artifactId>jorm</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
 ## Create JROM object
 
 A Jorm object is the API entry for all operations on the database, it only needs a `javax.sql.DataSource`.
