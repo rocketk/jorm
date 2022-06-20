@@ -29,7 +29,7 @@ nbdist/
 deploy/
 deploy.sh
 
-src/test/java/com/github/rocketk/jorm/oracle
+src/test/java/io/github/rocketk/jorm/oracle
 
 *.log
-test/
+/test/
