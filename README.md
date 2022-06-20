@@ -5,6 +5,9 @@
 [![License](https://img.shields.io/github/license/rocketk/jorm)](https://github.com/rocketk/jorm/issues)
 
 [中文](README-CN.md)
+
+[[_TOC_]]
+
 # Introduction
 
 JORM is a lightweight JDBC-based ORM tool.  
@@ -46,10 +49,13 @@ Just add the dependency to your `pom.xml`
 
 ## Create JROM object
 
-A Jorm object is the API entry for all operations on the database, it only needs a `javax.sql.DataSource`.
+A Jorm object is the API entry for all operations on a database, it only needs a `javax.sql.DataSource`.
 
 **Standard SQL**
-
+Supported Databases:
+- Oracle
+- HsqlDB
+- Other Databases that support the features of `fetch first n rows only` and `offset n`. See `io.github.rocketk.jorm.dialect.StandardLimitOffsetAppender`
 ```java
 // ignored the creation stage of the dataSource
 final Jorm db new Jorm(dataSource);
@@ -84,7 +90,7 @@ final Employee jack = employee.get();
 
 ### Query only specified columns
 
-Some tables have many columns, but only a few of them are used in each query. If you can specify exactly the columns you need in the query, it may greatly improve the performance of the program. By using `select()` method to achieve this:
+Some tables have many columns, but only a few of them are used in each query. If you can specify exactly the columns you need in the query, it may greatly improve the performance of the program. By using `select()` method to get it:
 ```java
 final Jorm db = new Jorm(ds);
 final Optional<Employee> employee = db.query(Employee.class)
@@ -97,7 +103,7 @@ final Employee jack = employee.get();
 
 ### Return single record and multiple records
 
-The above shows using the `first()` method to return a single record, and the following shows the `find()` method returning multiple records:
+The above code shows that how to use the `first()` method to return a single record, and the following shows that how to use the `find()` method to return multiple records:
 ```java
 final Jorm db = new Jorm(ds);
 final List<Employee> list = db.query(Employee.class).find();
@@ -106,7 +112,7 @@ final List<Employee> list = db.query(Employee.class).find();
 
 ### Hide the specified column or field
 
-In some cases, you want to hide the value of a column, you can use the `omit()` method to achieve this:
+In some cases, you want to hide the value of a column, you can use the `omit()` method to get it:
 ```java
 final Jorm db = new Jorm(ds);
 final Optional<Employee> employee = db.query(Employee.class).omit("profile").where("name=?", "Jack").first();
@@ -189,9 +195,9 @@ public class SnakeCamelColumnFieldNameMapper implements ColumnFieldNameMapper {
 }
 ```
 
-### Query with the "soft delete" function turned on
+### Query with the "soft delete" feature turned on
 
-This feature is only meaningful when you enable the "soft delete" function. To enable "soft delete", you need to add `@JormTable(enableSoftDelete() == true)` on an Entity class.
+This feature is only meaningful when you enable the "soft delete" feature. To enable "soft delete", you need to add `@JormTable(enableSoftDelete() == true)` on an Entity class.
 
 When a Java class is marked as "soft delete", when querying it (corresponding table), only undeleted records are queried by default.  
 Look the following code, here we assume that the user `Bruce` has been marked "deleted", i.e. `deleted_at is not null`.  
@@ -203,7 +209,7 @@ public void testQuery_withSoftDeleteEnabled() {
     assertFalse(db.query(Employee.class).where("name=?", "Bruce").first().isPresent());
     // sql: "select * from employee  where deleted_at is null  and name=?  fetch first 1 rows only", args: "[Bruce]"
     
-    // Although you have turned on the "soft delete" function, but sometimes you still want to query these deleted records in some occasions
+    // Although you have turned on the "soft delete" feature, but sometimes you may still want to query these deleted records for a reason.
     assertTrue(db.query(Employee.class).where("name=?", "Bruce").shouldFindDeletedRows(true).first().isPresent());
     // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[Bruce]"
     
@@ -278,9 +284,9 @@ public enum Gender {
 ```
 You can see that this enum type has an annotation `@JormCustomEnum`, and 2 methods: `int getValue()` and `static Gender parse(Object rawValue)`. These two methods actually correspond to the two processes of "Java enum object -> database storage value" and "database storage value -> Java enum object".
 
-In this example, we use the numeric type as the storage type in the database (the actual storage type in the database may be `int` `tinyint`, etc.). Compared to saving enumeration type literals, the numbers obviously take up less space.
+In above example, we use the numeric type as the storage type in the database (the actual storage type in the database may be `int` `tinyint`, etc.). Compared to saving enumeration type literals, the numbers obviously take up less space.
 
-Of course you don't have to use numeric types, in fact, `getValue()` can return any type.
+Of course, you can also use any other type rather than numeric types, just change the return type of `getValue()`.
 
 The names of `getValue()` and `parse(Object rawValue)` can also be modified, see `JormCustomEnum.valueMethod` and `JormCustomEnum.parseMethod`
 #### Array & List
@@ -309,10 +315,113 @@ public class Employee {
 }
 ```
 
+## Mutation (Insert, Update, Delete)
+### Insert
+```java
+final Jorm db = createJorm();
+final Employee e = new Employee();
+e.setName("test");
+boolean success = db.mutation(Employee.class).omit("pk").obj(e).insert();
+// sql: "insert into employee (name,created_at,updated_at ) values ( ?,?,? )", argValues: "[test, 2022-06-20T11:16:16.059+0800, 2022-06-20T11:16:16.059+0800]"
+
+boolean success = db.mutation(Employee.class).omit("pk")
+        .set("name", "test2")
+        .set("created_at", new Date())
+        .set("updated_at", new Date())
+        .insert();
+// sql: "insert into employee (name,created_at,updated_at ) values ( ?,?,? )", argValues: "[test2, 2022-06-20T11:16:16.070+0800, 2022-06-20T11:16:16.070+0800]"
+```
+
+### Insert and return keys
+```java
+final Jorm db = createJorm();
+final Employee e = new Employee();
+e.setName("test");
+final Date now = new Date();
+e.setUpdatedAt(now);
+final long pk = db.mutation(Employee.class).omit("pk").obj(e).set("created_at", now).insertAndReturnFirstKey();
+// sql: "insert into employee (created_at,name,updated_at ) values ( ?,?,? )", argValues: "[2022-06-20T11:19:48.545+0800, test, 2022-06-20T11:19:48.545+0800]"
+final Optional<Employee> retrieved = db.query(Employee.class).where("pk=?", pk).first();
+// sql: "select * from employee  where deleted_at is null  and pk=?  fetch first 1 rows only", args: "[1006]"
+```
+
+### Update
+```java
+final Jorm db = createJorm();
+final long affected = db.mutation(Employee.class)
+        .set("academic_degree", AcademicDegree.MASTER)
+        .where("name=?", "张三")
+        .update();
+// sql: "update employee set academic_degree=?,updated_at=? where deleted_at is null  and name=? ", argValues: "[MASTER, 2022-06-20T11:24:28.549+0800, 张三]"
+final Optional<Employee> retrieved = db.query(Employee.class).where("name=?", "张三").first();
+// sql: "select * from employee  where deleted_at is null  and name=?  fetch first 1 rows only", args: "[张三]"
+```
+
+### Soft Delete
+```java
+final Jorm db = createJorm();
+final long affected = db.mutation(Employee.class).where("name=?", "Jack").delete();
+// sql: "update employee set deleted_at=? where deleted_at is null  and name=? ", argValues: "[2022-06-20T14:55:03.011+0800, Jack]"
+```
+
+### Hard Delete
+```java
+final Jorm db = createJorm();
+final long affected = db.mutation(Employee2.class).where("name=?", "Jack").delete();
+// sql: "delete from employee where name=? ", argValues: "[Jack]"
+```
+
+### Where-Clause-Absent Warning
+```java
+final Jorm db = createJorm();
+final long affected = db.mutation(Employee.class).delete(); // throws WhereClauseAbsentException
+```
+
+To disable the Where-Clause-Absent warning:
+```java
+final Jorm db = createJorm();
+final long affected = db.mutation(Employee.class).ignoreNoWhereClauseWarning(true).delete();
+// sql: "update employee set deleted_at=? where deleted_at is null ", argValues: "[2022-06-20T15:04:17.502+0800]"
+```
+
+
+## Transaction
+### With default error handler
+```java
+final Jorm db = createJorm();
+final BigDecimal jackNewSalary = new BigDecimal("654321.00");
+final BigDecimal benjaminNewSalary = new BigDecimal("123456.00");
+final boolean success = db.transaction().operations(t -> {
+    t.mutation(Employee.class).where("name=?", "Jack").set("salary", jackNewSalary).update();
+    t.mutation(Employee.class).where("name=?", "Benjamin").set("salary", benjaminNewSalary).update();
+}).commit();
+```
+There is a default error handler when `.onError((t, e) -> {})` absent. It will roll back the transaction when an error occurred.  
+See `io.github.rocketk.jorm.Transaction`:
+```java
+private BiConsumer<Transaction, Exception> onErrorFunc = (t, e) -> {
+    logger.error(e.getMessage(), e);
+    t.rollback();
+};
+```
+### With custom error handler
+```java
+final Jorm db = createJorm();
+final BigDecimal jackNewSalary = new BigDecimal("654321.00");
+final BigDecimal benjaminNewSalary = new BigDecimal("123456.00");
+final boolean success = db.transaction().operations(t -> {
+    t.mutation(Employee.class).where("name=?", "Jack").set("salary", jackNewSalary).update();
+    t.mutation(Employee.class).where("name=?", "Benjamin").set("salary1", benjaminNewSalary).update();
+}).onError((t, e) -> {
+    // do something
+    System.out.println("operation failed, caused by: " + e.getMessage());
+    t.rollback();
+}).commit();
+```
 # Supported Databases
 - MySQL
 - HSQLDB
 - Derby
 
-In the project, there are unit test codes for `HsqlDB` and `Derby`, as well as integration test code for `Mysql` (that is, the Mysql instance is provided externally by the program).  
+In the project, there are unit test codes for `HsqlDB` and `Derby`, as well as integration test code for `Mysql` (that is, the Mysql instance is provided externally).  
 The test code for other popular databases will be gradually added in the future.
