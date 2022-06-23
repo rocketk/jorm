@@ -52,7 +52,7 @@ values ( 'Mary', 0, 'MASTER', 12345.01, str_to_date('1979-10-01', '%Y-%m-%d'), '
 
 insert into employee (name, gender, academic_degree, salary, birth_date, tags, languages, attributes,
                       during_internship, profile, created_at, updated_at)
-values ( '张三', 0, 'BACHELOR', 1000.90, str_to_date('2008-01-01', '%Y-%m-%d'), 'student', null
+values ( '韩梅梅', 0, 'BACHELOR', 1000.90, str_to_date('2008-01-01', '%Y-%m-%d'), 'student', null
        , null, 1
        , ''
        , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s')
@@ -60,7 +60,7 @@ values ( '张三', 0, 'BACHELOR', 1000.90, str_to_date('2008-01-01', '%Y-%m-%d')
 
 insert into employee (name, gender, academic_degree, salary, birth_date, tags, languages, attributes,
                       during_internship, profile, created_at, updated_at, deleted_at)
-values ( 'Bruce', 0, 'BACHELOR', 1000.90, str_to_date('2008-01-01', '%Y-%m-%d'), 'student', null
+values ( 'Elizabeth', 0, 'BACHELOR', 1000.90, str_to_date('2008-01-01', '%Y-%m-%d'), 'student', null
        , null, 1
        , ''
        , str_to_date('2022-04-07 15:03:45', '%Y-%m-%d %H:%i:%s')

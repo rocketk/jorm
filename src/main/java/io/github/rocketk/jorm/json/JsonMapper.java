@@ -12,7 +12,7 @@ public interface JsonMapper {
      * @param content the string in JSON format
      * @param clazz   type class
      * @param <T>     the expected type of the target object
-     * @return
+     * @return unmarshalled object
      */
     <T> T unmarshal(String content, Class<T> clazz);
 

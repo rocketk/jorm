@@ -48,7 +48,7 @@ values ( 'Mary', 0, 'MASTER', 12345.01, '1979-10-01', 'manager m3', 'java python
 
 insert into employee (name, gender, academic_degree, salary, birth_date, tags, languages, attributes,
                       during_internship, profile, created_at, updated_at)
-values ( '张三', 0, 'BACHELOR', 1000.90, '2008-01-01', 'student', null
+values ( '韩梅梅', 0, 'BACHELOR', 1000.90, '2008-01-01', 'student', null
        , null, 1
        , ''
        , '2022-04-07 15:03:45'
@@ -56,7 +56,7 @@ values ( '张三', 0, 'BACHELOR', 1000.90, '2008-01-01', 'student', null
 
 insert into employee (name, gender, academic_degree, salary, birth_date, tags, languages, attributes,
                       during_internship, profile, created_at, updated_at, deleted_at)
-values ( 'Bruce', 0, 'BACHELOR', 1000.90, '2008-01-01', 'student', null
+values ( 'Elizabeth', 0, 'BACHELOR', 1000.90, '2008-01-01', 'student', null
        , null, 1
        , ''
        , '2022-04-07 15:03:45'

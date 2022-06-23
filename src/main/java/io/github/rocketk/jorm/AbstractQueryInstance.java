@@ -40,6 +40,7 @@ public abstract class AbstractQueryInstance<T> {
     protected Config config;
     protected Class<T> model;
     protected String table;
+    protected boolean count;
 
     protected String rawSql;
 
@@ -100,15 +101,19 @@ public abstract class AbstractQueryInstance<T> {
 
     protected void initRowMapper() {
         if (rowMapper == null) {
-            if (model == null) {
+            if (model == null && !count) {
                 throw new JormQueryException("either rowMapper or model is required");
             }
             rowMapper = rowMapperFactory.getRowMapper(model);
         }
     }
 
+    protected void setArgs(PreparedStatement ps, List<Object> args) {
+        setArgs(ps, args == null ? null : args.toArray());
+    }
+
     /**
-     * @param ps PreparedStatement object
+     * @param ps   PreparedStatement object
      * @param args the arguments. base type or Enum
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -155,16 +160,22 @@ public abstract class AbstractQueryInstance<T> {
     }
 
     protected void appendWhereClause(boolean findDeletedRows, StringBuilder sql, String whereClause) {
-        String whereKeyword = " where ";
+        boolean shouldStartWithAnd = false;
+//        String whereKeyword = " where ";
         if (!findDeletedRows) {
             final Optional<String> deletedAtColumnName = deletedAtColumn(model);
             if (deletedAtColumnName.isPresent()) {
                 sql.append(" where ").append(deletedAtColumnName.get()).append(" is null ");
-                whereKeyword = " and ";
+//                whereKeyword = " and ";
+                shouldStartWithAnd = true;
             }
         }
         if (StringUtils.isNotBlank(whereClause)) {
-            sql.append(whereKeyword).append(whereClause).append(" ");
+            if (shouldStartWithAnd) {
+                sql.append(" and (").append(whereClause).append(") ");
+            } else {
+                sql.append(" where ").append(whereClause).append(" ");
+            }
         }
     }
 

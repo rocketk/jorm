@@ -51,9 +51,9 @@ public class JormDerbyTest extends CrudCasesTest {
     @Test
     public void testRawQuery() {
         final Jorm db = createJorm();
-        final Optional<Employee> zhangsan = db.rawQuery(Employee.class, "select * from employee where name=? fetch first 1 row only", "张三").first(); // non-deleted row
-        final Optional<Employee> bruce = db.rawQuery(Employee.class, "select * from employee where name=? fetch first 1 row only", "Bruce").first(); // deleted row
+        final Optional<Employee> zhangsan = db.rawQuery(Employee.class, "select * from employee where name=? fetch first 1 row only", "韩梅梅").first(); // non-deleted row
+        final Optional<Employee> elizabeth = db.rawQuery(Employee.class, "select * from employee where name=? fetch first 1 row only", "Elizabeth").first(); // deleted row
         assertTrue(zhangsan.isPresent());
-        assertTrue(bruce.isPresent());
+        assertTrue(elizabeth.isPresent());
     }
 }

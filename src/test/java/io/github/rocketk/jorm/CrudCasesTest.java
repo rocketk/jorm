@@ -1,10 +1,14 @@
 package io.github.rocketk.jorm;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import io.github.rocketk.data.*;
-import io.github.rocketk.jorm.err.WhereClauseAbsentException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import io.github.rocketk.data.*;
+import io.github.rocketk.jorm.err.WhereClauseAbsentException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -16,22 +20,11 @@ import java.util.Optional;
 
 import static io.github.rocketk.jorm.util.DateUtil.toDate;
 import static io.github.rocketk.jorm.util.DateUtil.toDateTime;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 
 /**
  * @author pengyu
- *
  */
 public abstract class CrudCasesTest {
     protected DruidDataSource ds;
@@ -189,11 +182,11 @@ public abstract class CrudCasesTest {
     @Test
     public void testQueryFirst_withChineseChar() {
         final Jorm db = createJorm();
-        final Optional<Employee> employee = db.query(Employee.class).where("name=?", "张三").first();
+        final Optional<Employee> employee = db.query(Employee.class).where("name=?", "韩梅梅").first();
         assertTrue(employee.isPresent());
         final Employee zjm = employee.get();
         assertEquals(1004, zjm.getPk());
-        assertEquals("张三", zjm.getName());
+        assertEquals("韩梅梅", zjm.getName());
         assertEquals(Gender.FEMALE, zjm.getGender());
         assertEquals(AcademicDegree.BACHELOR, zjm.getAcademicDegree());
         assertEquals(new BigDecimal("1000.90"), zjm.getSalary());
@@ -249,7 +242,7 @@ public abstract class CrudCasesTest {
     @Test
     public void testQuery_withColumnAnnotation() {
         final Jorm db = createJorm();
-        final Optional<Employee2> zhangsan = db.query(Employee2.class).shouldFindDeletedRows(true).where("name=?", "张三").first();
+        final Optional<Employee2> zhangsan = db.query(Employee2.class).shouldFindDeletedRows(true).where("name=?", "韩梅梅").first();
         assertTrue(zhangsan.isPresent());
         assertNotNull(zhangsan.get().getInternship());
         assertTrue(zhangsan.get().getInternship());
@@ -258,10 +251,32 @@ public abstract class CrudCasesTest {
     @Test
     public void testQuery_withSoftDeleteEnabled() {
         final Jorm db = createJorm();
-        assertFalse(db.query(Employee.class).where("name=?", "Bruce").first().isPresent());
-        assertTrue(db.query(Employee.class).where("name=?", "Bruce").shouldFindDeletedRows(true).first().isPresent());
-        assertTrue(db.query(Employee2.class).where("name=?", "Bruce").first().isPresent());
-        assertTrue(db.query(Employee2.class).where("name=?", "Bruce").shouldFindDeletedRows(false).first().isPresent());
+        assertFalse(db.query(Employee.class).where("name=?", "Elizabeth").first().isPresent());
+        assertTrue(db.query(Employee.class).where("name=?", "Elizabeth").shouldFindDeletedRows(true).first().isPresent());
+        assertTrue(db.query(Employee2.class).where("name=?", "Elizabeth").first().isPresent());
+        assertTrue(db.query(Employee2.class).where("name=?", "Elizabeth").shouldFindDeletedRows(false).first().isPresent());
+    }
+
+    @Test
+    public void testQuery_count_singleValue() {
+        final Jorm db = createJorm();
+        final long count = db.query(Long.class).table("employee").count();
+        final long count1 = db.query(Employee.class).shouldFindDeletedRows(true).count();
+        assertEquals(count1, count);
+    }
+
+    @Test
+    public void testQuery_count_singleValue2() {
+        final Jorm db = createJorm();
+        final Optional<Long> countBox = db.query(Long.class).table("employee").select("count(*)").first();
+        assertTrue(countBox.isPresent());
+        final long count1 = db.query(Employee.class).shouldFindDeletedRows(true).count();
+        assertEquals(count1, countBox.get());
+        assertEquals(count1, (long) db.query(Integer.class).table("employee").select("count(*)").first().get());
+        final List<String> names = db.query(String.class).table("employee").select("name").find();
+        assertNotNull(names);
+        assertEquals(count1, names.size());
+        names.forEach(Assertions::assertNotNull);
     }
 
     @Test
@@ -275,7 +290,26 @@ public abstract class CrudCasesTest {
     }
 
     @Test
-    public void testRawQuery2() {
+    public void testQuery_multiWhere() {
+        final Jorm db = createJorm();
+        final long count = db.query(Employee.class)
+                .where("gender = ?", Gender.FEMALE)
+                .count();
+        assertEquals(2, count);
+        final long count2 = db.query(Employee.class)
+                .where("gender = ?", Gender.FEMALE)
+                .and("salary > ?", 1200)
+                .count();
+        assertEquals(1, count2);
+        final long count3 = db.query(Employee.class)
+                .where("gender = ?", Gender.FEMALE)
+                .and("salary > ? or 1=1", 1200)
+                .count();
+        assertEquals(2, count3);
+    }
+
+    @Test
+    public void testRawQuery() {
         final Jorm db = createJorm();
         final Optional<Employee> zhangsan = db.query(Employee.class)
                 .rawSql("select * from employee where birth_date >= ?", toDateTime("2000-01-01 00:00:00"))
@@ -284,14 +318,62 @@ public abstract class CrudCasesTest {
     }
 
     @Test
+    public void testRawQuery_aggregate_returnMap() {
+        final Jorm db = createJorm();
+        final List<Map> result = db.queryMap().rawSql("select gender, count(*) from employee group by gender").find();
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        final Optional<Map> male = db.queryMap().rawSql("select gender, count(*) c from employee group by gender having gender = 1").first();
+        assertTrue(male.isPresent());
+        final Map map = male.get();
+        assertEquals(2, map.size());
+        assertTrue(map.containsKey("GENDER") || map.containsKey("gender"));
+        assertTrue(map.containsKey("C") || map.containsKey("c"));
+    }
+
+    public static class GenderCount {
+        private Gender gender;
+        private int c;
+
+        public Gender getGender() {
+            return gender;
+        }
+
+        public void setGender(Gender gender) {
+            this.gender = gender;
+        }
+
+        public int getC() {
+            return c;
+        }
+
+        public void setC(int c) {
+            this.c = c;
+        }
+    }
+
+    @Test
+    public void testRawQuery_aggregate_returnCustomModel() {
+        final Jorm db = createJorm();
+        final List<GenderCount> genderCounts = db.query(GenderCount.class).rawSql("select gender, count(*) from employee group by gender").find();
+        assertNotNull(genderCounts);
+        assertEquals(2, genderCounts.size());
+        final Optional<GenderCount> genderCountBox = db.query(GenderCount.class).rawSql("select gender, count(*) c from employee group by gender having gender = 1").first();
+        assertTrue(genderCountBox.isPresent());
+        final GenderCount genderCount = genderCountBox.get();
+        assertEquals(Gender.MALE, genderCount.getGender());
+        assertEquals(2, genderCount.getC());
+    }
+
+    @Test
     public void testUpdate() {
         final Jorm db = createJorm();
         final long affected = db.mutation(Employee.class)
                 .set("academic_degree", AcademicDegree.MASTER)
-                .where("name=?", "张三")
+                .where("name=?", "韩梅梅")
                 .update();
         assertEquals(1, affected);
-        final Optional<Employee> retrieved = db.query(Employee.class).where("name=?", "张三").first();
+        final Optional<Employee> retrieved = db.query(Employee.class).where("name=?", "韩梅梅").first();
         assertTrue(retrieved.isPresent());
         assertEquals(AcademicDegree.MASTER, retrieved.get().getAcademicDegree());
         // 更新时间小于1秒

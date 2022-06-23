@@ -38,9 +38,9 @@ public class JormMysqlTest extends CrudCasesTest {
     @Test
     public void testRawQuery() {
         final Jorm db = createJorm();
-        final Optional<Employee> zhangsan = db.rawQuery(Employee.class, "select * from employee where name=? limit 1", "张三").first(); // non-deleted row
-        final Optional<Employee> bruce = db.rawQuery(Employee.class, "select * from employee where name=? limit 1", "Bruce").first(); // deleted row
+        final Optional<Employee> zhangsan = db.rawQuery(Employee.class, "select * from employee where name=? limit 1", "韩梅梅").first(); // non-deleted row
+        final Optional<Employee> elizabeth = db.rawQuery(Employee.class, "select * from employee where name=? limit 1", "Elizabeth").first(); // deleted row
         assertTrue(zhangsan.isPresent());
-        assertTrue(bruce.isPresent());
+        assertTrue(elizabeth.isPresent());
     }
 }

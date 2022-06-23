@@ -61,7 +61,7 @@ public class DeprecatedJormMysqlTest {
     @Test
     public void first() {
         final Optional<Employee> employee = db.query(Employee.class)
-                .where("name=?", "张三")
+                .where("name=?", "韩梅梅")
                 .first();
         assertNotNull(employee);
         assertTrue(employee.isPresent());
@@ -86,7 +86,7 @@ public class DeprecatedJormMysqlTest {
         final int n = 5;
         for (int i = 0; i < n; i++) {
             final Optional<Employee> employee = db.query(Employee.class)
-                    .where("name=?", "张三")
+                    .where("name=?", "韩梅梅")
                     .first();
         }
         final long costs = System.currentTimeMillis() - t0;
@@ -123,20 +123,20 @@ public class DeprecatedJormMysqlTest {
 
     @Test
     public void first_raw() {
-        final Optional<Employee> employee = db.query(Employee.class).rawSql("select * from employee where name=?", "张三").first();
+        final Optional<Employee> employee = db.query(Employee.class).rawSql("select * from employee where name=?", "韩梅梅").first();
         logger.info("employee: {}", employee);
     }
 
     @Test
     public void first_raw_map() {
-        final Optional<Map> employee = db.queryMap().rawSql("select * from employee where name=?", "张三").first();
+        final Optional<Map> employee = db.queryMap().rawSql("select * from employee where name=?", "韩梅梅").first();
         logger.info("employee: {}", employee);
     }
 
     @Test
     public void first_raw_customRowMapper() {
         final Optional<Employee> employee = db.query(Employee.class)
-                .rawSql("select name, gender from employee where name=?", "张三")
+                .rawSql("select name, gender from employee where name=?", "韩梅梅")
                 .rowMapper((rs, omitted) -> {
                     final Employee e = new Employee();
                     e.setName(rs.getString("name"));
@@ -165,7 +165,7 @@ public class DeprecatedJormMysqlTest {
         assertTrue(count > 1);
 
         final long count1 = db.query(Employee.class)
-                .where("name=?", "张三")
+                .where("name=?", "韩梅梅")
                 .count();
         logger.info("count1: {}", count1);
         assertEquals(1, count1);
@@ -202,7 +202,7 @@ public class DeprecatedJormMysqlTest {
     public void insert_withObject_withGeneratedKeys_firstKey() {
         final Employee employee = new Employee();
         final Date now = new Date();
-        employee.setName("Bruce");
+        employee.setName("Elizabeth");
         employee.setGender(Gender.FEMALE);
         employee.setAcademicDegree(AcademicDegree.MASTER);
         employee.setTags(new String[]{"admin leader"});

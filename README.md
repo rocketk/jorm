@@ -6,8 +6,6 @@
 
 [中文](README-CN.md)
 
-[[_TOC_]]
-
 # Introduction
 
 JORM is a lightweight JDBC-based ORM tool.  
@@ -32,6 +30,8 @@ Different from Mybatis and Hibernate, JORM encourages developers to directly use
 - [x] Custom `RowMapper`
 - [ ] Batch
 - [x] Transaction
+- [ ] Join
+- [ ] Multi Where
 
 # Get Started
 
@@ -101,7 +101,7 @@ final Optional<Employee> employee = db.query(Employee.class)
 final Employee jack = employee.get();
 ```
 
-### Return single record and multiple records
+### Return multiple records
 
 The above code shows that how to use the `first()` method to return a single record, and the following shows that how to use the `find()` method to return multiple records:
 ```java
@@ -133,6 +133,11 @@ final List<Employee> list = db.query(Employee.class)
     .find();
 // sql for standard: "select * from employee  where deleted_at is null  order by pk asc  offset 1 fetch first 2 rows only"
 // sql for mysql: "select * from employee  where deleted_at is null  order by pk asc  limit 2  offset 1 "
+```
+
+### Raw SQL
+```java
+
 ```
 
 ### Mapping of field names to column names & class names to table names
@@ -200,24 +205,24 @@ public class SnakeCamelColumnFieldNameMapper implements ColumnFieldNameMapper {
 This feature is only meaningful when you enable the "soft delete" feature. To enable "soft delete", you need to add `@JormTable(enableSoftDelete() == true)` on an Entity class.
 
 When a Java class is marked as "soft delete", when querying it (corresponding table), only undeleted records are queried by default.  
-Look the following code, here we assume that the user `Bruce` has been marked "deleted", i.e. `deleted_at is not null`.  
+Look the following code, here we assume that the user `Elizabeth` has been marked "deleted", i.e. `deleted_at is not null`.  
 The `Employee` class in the code below is marked with `@JormTable(enableSoftDelete() == true)`, while `Employee2` is not, then the following assertion will be true:
 ```java
 @Test
 public void testQuery_withSoftDeleteEnabled() {
     final Jorm db = createJorm();
-    assertFalse(db.query(Employee.class).where("name=?", "Bruce").first().isPresent());
-    // sql: "select * from employee  where deleted_at is null  and name=?  fetch first 1 rows only", args: "[Bruce]"
+    assertFalse(db.query(Employee.class).where("name=?", "Elizabeth").first().isPresent());
+    // sql: "select * from employee  where deleted_at is null  and name=?  fetch first 1 rows only", args: "[Elizabeth]"
     
     // Although you have turned on the "soft delete" feature, but sometimes you may still want to query these deleted records for a reason.
-    assertTrue(db.query(Employee.class).where("name=?", "Bruce").shouldFindDeletedRows(true).first().isPresent());
-    // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[Bruce]"
+    assertTrue(db.query(Employee.class).where("name=?", "Elizabeth").shouldFindDeletedRows(true).first().isPresent());
+    // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[Elizabeth]"
     
-    assertTrue(db.query(Employee2.class).where("name=?", "Bruce").first().isPresent());
-    // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[Bruce]"
+    assertTrue(db.query(Employee2.class).where("name=?", "Elizabeth").first().isPresent());
+    // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[Elizabeth]"
     
-    assertTrue(db.query(Employee2.class).where("name=?", "Bruce").shouldFindDeletedRows(false).first().isPresent());
-    // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[Bruce]"
+    assertTrue(db.query(Employee2.class).where("name=?", "Elizabeth").shouldFindDeletedRows(false).first().isPresent());
+    // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[Elizabeth]"
 }
 ```
 
@@ -350,11 +355,11 @@ final Optional<Employee> retrieved = db.query(Employee.class).where("pk=?", pk).
 final Jorm db = createJorm();
 final long affected = db.mutation(Employee.class)
         .set("academic_degree", AcademicDegree.MASTER)
-        .where("name=?", "张三")
+        .where("name=?", "韩梅梅")
         .update();
-// sql: "update employee set academic_degree=?,updated_at=? where deleted_at is null  and name=? ", argValues: "[MASTER, 2022-06-20T11:24:28.549+0800, 张三]"
-final Optional<Employee> retrieved = db.query(Employee.class).where("name=?", "张三").first();
-// sql: "select * from employee  where deleted_at is null  and name=?  fetch first 1 rows only", args: "[张三]"
+// sql: "update employee set academic_degree=?,updated_at=? where deleted_at is null  and name=? ", argValues: "[MASTER, 2022-06-20T11:24:28.549+0800, 韩梅梅]"
+final Optional<Employee> retrieved = db.query(Employee.class).where("name=?", "韩梅梅").first();
+// sql: "select * from employee  where deleted_at is null  and name=?  fetch first 1 rows only", args: "[韩梅梅]"
 ```
 
 ### Soft Delete
@@ -411,7 +416,7 @@ final BigDecimal jackNewSalary = new BigDecimal("654321.00");
 final BigDecimal benjaminNewSalary = new BigDecimal("123456.00");
 final boolean success = db.transaction().operations(t -> {
     t.mutation(Employee.class).where("name=?", "Jack").set("salary", jackNewSalary).update();
-    t.mutation(Employee.class).where("name=?", "Benjamin").set("salary1", benjaminNewSalary).update();
+    t.mutation(Employee.class).where("name=?", "Benjamin").set("salary1", benjaminNewSalary).update(); // throws an exception, 'salary1' is invalid
 }).onError((t, e) -> {
     // do something
     System.out.println("operation failed, caused by: " + e.getMessage());

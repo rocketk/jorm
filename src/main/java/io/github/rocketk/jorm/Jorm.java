@@ -36,6 +36,20 @@ public class Jorm {
     }
 
     public <T> Query<T> query(Class<T> model) {
+        if (model != null) {
+            if (Long.class.isAssignableFrom(model)) {
+                return (Query<T>) new QueryInstance<>(ds, config, Long.class, rowMapperFactory).rowMapper((rs, cols) -> rs.getLong(1));
+            }
+            if (Integer.class.isAssignableFrom(model)) {
+                return (Query<T>) new QueryInstance<>(ds, config, Integer.class, rowMapperFactory).rowMapper((rs, cols) -> rs.getInt(1));
+            }
+            if (Boolean.class.isAssignableFrom(model)) {
+                return (Query<T>) new QueryInstance<>(ds, config, Boolean.class, rowMapperFactory).rowMapper((rs, cols) -> rs.getBoolean(1));
+            }
+            if (String.class.isAssignableFrom(model)) {
+                return (Query<T>) new QueryInstance<>(ds, config, String.class, rowMapperFactory).rowMapper((rs, cols) -> rs.getString(1));
+            }
+        }
         return new QueryInstance<>(ds, config, model, rowMapperFactory);
     }
 

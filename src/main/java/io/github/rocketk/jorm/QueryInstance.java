@@ -28,15 +28,14 @@ import java.util.Set;
  */
 public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<T> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    protected Object[] args;
+    protected List<Object> args = Lists.newArrayList();
     private Set<String> selectedColumns = Sets.newHashSet();
     private Set<String> omittedColumns = Sets.newHashSet();
-    private String whereClause;
+    private StringBuilder whereClause = new StringBuilder(128);
     //    private List<Object> whereClauseArgs = new ArrayList<>();
     private String orderByClause;
     private Long limit;
     private Long offset;
-    private boolean count;
 
     private boolean findDeletedRows;
 
@@ -91,22 +90,38 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
 
     @Override
     public Query<T> where(String whereClause, Object... args) {
-        this.whereClause = whereClause;
-//        if (args != null) {
-//            if (this.whereClauseArgs == null) {
-//                this.whereClauseArgs = new ArrayList<>();
-//            }
-//            this.whereClauseArgs.addAll(Arrays.asList(args));
-//            this.whereClauseArgs.addAll()
-//        }
-        this.args = Optional.ofNullable(args).orElse(new Object[0]);
+        if (this.whereClause.length() > 0) {
+            this.whereClause = new StringBuilder(128);
+        }
+        this.whereClause.append(whereClause);
+        this.args = Lists.newArrayList();
+//        this.args = Optional.ofNullable(args).orElse(new Object[0]);
+        if (args != null && args.length > 0) {
+            this.args.addAll(Arrays.asList(args));
+        }
+        return this;
+    }
+
+    @Override
+    public Query<T> and(String whereClause, Object... args) {
+        if (this.whereClause.length() > 0) {
+            this.whereClause.append(" and (").append(whereClause).append(")");
+        } else {
+            this.whereClause.append(whereClause);
+        }
+        if (this.args == null) {
+            this.args = Lists.newArrayList(16);
+        }
+        if (args != null && args.length > 0) {
+            this.args.addAll(Arrays.asList(args));
+        }
         return this;
     }
 
     @Override
     public Query<T> rawSql(String rawSql, Object... args) {
         this.rawSql = rawSql;
-        this.args = args;
+        this.args = Arrays.asList(args);
         return this;
     }
 
@@ -166,6 +181,7 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
 //                logger.info("parseResultSetToSingleObject cost: {} ms", t5 - t4);
                 return Optional.ofNullable(obj);
             } catch (SQLException e) {
+                e.printStackTrace();
                 throw e;
             }
         } catch (SQLException e) {
@@ -246,7 +262,7 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
         }
         sql.append(" from ").append(this.table).append(" ");
         // where?
-        appendWhereClause(findDeletedRows, sql, whereClause);
+        appendWhereClause(findDeletedRows, sql, whereClause.toString());
         if (this.orderByClause != null) {
             sql.append(" order by ").append(orderByClause).append(" ");
         }

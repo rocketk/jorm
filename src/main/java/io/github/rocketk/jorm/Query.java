@@ -71,6 +71,8 @@ public interface Query<T> {
      */
     Query<T> where(String whereClause, Object... args);
 
+    Query<T> and(String whereClause, Object... args);
+
     Query<T> rawSql(String rawSql, Object... args);
 
     Query<T> orderBy(String orderByClause);

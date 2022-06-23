@@ -57,8 +57,8 @@ final Jorm db new Jorm(dataSource, config);
 # 查询
 ## 添加条件语句和查询参数
 ```java
-final Optional<Employee> employee = db.query(Employee.class).where("name=?", "张三").first();
-// sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[张三]"
+final Optional<Employee> employee = db.query(Employee.class).where("name=?", "韩梅梅").first();
+// sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[韩梅梅]"
 final Employee zjm = employee.get();
 }
 ```
@@ -183,24 +183,24 @@ public class SnakeCamelColumnFieldNameMapper implements ColumnFieldNameMapper {
 
 这个功能是当你开启了「软删除」功能后才有意义，开启「软删除」需要使用`@JormTable`注解，并且`enableSoftDelete() == true`且`deletedAtColumn`非空。  
 
-当一个Java类被标记为「软删除」后，那么在对它（对应的表）进行查询操作时，默认仅查询未删除的记录，例如下面的代码，这里我们假设`Bruce`这个用户在数据库中已被标记为删除，即`deleted_at is not null`，下面代码中`Employee`类被标记为启用「软删除」，而`Employee2`则没有，那么下面的断言将会成立：
+当一个Java类被标记为「软删除」后，那么在对它（对应的表）进行查询操作时，默认仅查询未删除的记录，例如下面的代码，这里我们假设`Elizabeth`这个用户在数据库中已被标记为删除，即`deleted_at is not null`，下面代码中`Employee`类被标记为启用「软删除」，而`Employee2`则没有，那么下面的断言将会成立：
 
 ```java
 @Test
 public void testQuery_withSoftDeleteEnabled() {
     final Jorm db = createJorm();
-    assertFalse(db.query(Employee.class).where("name=?", "Bruce").first().isPresent());
-    // sql: "select * from employee  where deleted_at is null  and name=?  fetch first 1 rows only", args: "[Bruce]"
+    assertFalse(db.query(Employee.class).where("name=?", "Elizabeth").first().isPresent());
+    // sql: "select * from employee  where deleted_at is null  and name=?  fetch first 1 rows only", args: "[Elizabeth]"
     
     // 有时候尽管你开启了「软删除」功能，但你仍希望在某些场合下查询到这些已删除的记录
-    assertTrue(db.query(Employee.class).where("name=?", "Bruce").shouldFindDeletedRows(true).first().isPresent());
-    // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[Bruce]"
+    assertTrue(db.query(Employee.class).where("name=?", "Elizabeth").shouldFindDeletedRows(true).first().isPresent());
+    // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[Elizabeth]"
     
-    assertTrue(db.query(Employee2.class).where("name=?", "Bruce").first().isPresent());
-    // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[Bruce]"
+    assertTrue(db.query(Employee2.class).where("name=?", "Elizabeth").first().isPresent());
+    // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[Elizabeth]"
     
-    assertTrue(db.query(Employee2.class).where("name=?", "Bruce").shouldFindDeletedRows(false).first().isPresent());
-    // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[Bruce]"
+    assertTrue(db.query(Employee2.class).where("name=?", "Elizabeth").shouldFindDeletedRows(false).first().isPresent());
+    // sql: "select * from employee  where name=?  fetch first 1 rows only", args: "[Elizabeth]"
 }
 ```
 
