@@ -5,7 +5,9 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author pengyu
+ * @deprecated FastjsonMapper will be removed in the next version
  */
+@Deprecated
 public class FastjsonMapper implements io.github.rocketk.jorm.json.JsonMapper {
     @Override
     public <T> T unmarshal(String content, Class<T> clazz) {

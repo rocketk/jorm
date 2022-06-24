@@ -31,7 +31,6 @@ Different from Mybatis and Hibernate, JORM encourages developers to directly use
 - [ ] Batch
 - [x] Transaction
 - [ ] Join
-- [ ] Multi Where
 
 # Get Started
 

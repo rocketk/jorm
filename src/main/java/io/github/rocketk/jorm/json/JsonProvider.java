@@ -6,5 +6,6 @@ package io.github.rocketk.jorm.json;
 public enum JsonProvider {
     JACKSON,
     GSON,
+    @Deprecated
     FASTJSON,
 }
