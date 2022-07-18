@@ -1,7 +1,11 @@
-package io.github.rocketk.jorm;
+package io.github.rocketk.jorm.hikari;
 
 import io.github.rocketk.BaseDataTest;
+import io.github.rocketk.DataSourceType;
+import io.github.rocketk.DbType;
 import io.github.rocketk.data.Employee;
+import io.github.rocketk.jorm.CrudCasesTest;
+import io.github.rocketk.jorm.Jorm;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -17,11 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  */
 //@Disabled
-public class JormHsqldbTest extends CrudCasesTest {
+public class JormHikariHsqldbTest extends CrudCasesTest {
 
     @Override
     protected void initDataSourceInternally() throws SQLException, IOException {
-        super.ds = BaseDataTest.createDataSourceForHsqlDb();
+        super.ds = BaseDataTest.createDataSourceAndRunScript(DataSourceType.HIKARI, DbType.HSQLDB);
         Assertions.assertNotNull(super.ds, "dataSource is null");
         BaseDataTest.runScript(this.ds, "employee-hsqldb-schema-data.sql");
     }

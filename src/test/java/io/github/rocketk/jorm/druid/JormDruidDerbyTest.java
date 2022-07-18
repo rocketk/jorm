@@ -1,7 +1,11 @@
-package io.github.rocketk.jorm;
+package io.github.rocketk.jorm.druid;
 
 import io.github.rocketk.BaseDataTest;
+import io.github.rocketk.DataSourceType;
+import io.github.rocketk.DbType;
 import io.github.rocketk.data.Employee;
+import io.github.rocketk.jorm.CrudCasesTest;
+import io.github.rocketk.jorm.Jorm;
 import io.github.rocketk.jorm.conf.Config;
 import io.github.rocketk.jorm.conf.ConfigFactory;
 import io.github.rocketk.jorm.dialect.Dialect;
@@ -21,23 +25,13 @@ import static org.junit.jupiter.api.Assertions.fail;
  *
  */
 //@Disabled
-public class JormDerbyTest extends CrudCasesTest {
+public class JormDruidDerbyTest extends CrudCasesTest {
 
     @Override
     protected void initDataSourceInternally() throws SQLException, IOException {
-        super.ds = BaseDataTest.createDataSourceForDerby();
+        super.ds = BaseDataTest.createDataSourceAndRunScript(DataSourceType.DRUID, DbType.DERBY);
         System.out.println("initDataSourceInternally: " + this.hashCode());
         Assertions.assertNotNull(super.ds, "initDataSourceInternally: dataSource is null");
-        try {
-            BaseDataTest.runScript(this.ds, "employee-derby-drop-table.sql");
-        } catch (SQLException e) {
-            if (e.getMessage().contains("because it does not exist")) {
-                //
-            } else {
-                fail(e.getMessage());
-            }
-        }
-        BaseDataTest.runScript(this.ds, "employee-derby-schema-data.sql");
     }
 
     @Override

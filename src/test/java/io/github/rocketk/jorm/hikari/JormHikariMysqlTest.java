@@ -1,7 +1,11 @@
-package io.github.rocketk.jorm;
+package io.github.rocketk.jorm.hikari;
 
 import io.github.rocketk.BaseDataTest;
+import io.github.rocketk.DataSourceType;
+import io.github.rocketk.DbType;
 import io.github.rocketk.data.Employee;
+import io.github.rocketk.jorm.CrudCasesTest;
+import io.github.rocketk.jorm.Jorm;
 import io.github.rocketk.jorm.conf.Config;
 import io.github.rocketk.jorm.conf.ConfigFactory;
 import io.github.rocketk.jorm.dialect.Dialect;
@@ -19,12 +23,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author pengyu
  *
  */
-@Disabled
-public class JormMysqlTest extends CrudCasesTest {
+//@Disabled
+public class JormHikariMysqlTest extends CrudCasesTest {
 
     @Override
     protected void initDataSourceInternally() throws SQLException, IOException {
-        super.ds = BaseDataTest.createDataSourceForMysql();
+        super.ds = BaseDataTest.createDataSourceAndRunScript(DataSourceType.HIKARI, DbType.MYSQL);
         BaseDataTest.runScript(this.ds, "employee-mysql-schema-data.sql");
     }
 

@@ -1,6 +1,5 @@
 package io.github.rocketk.jorm;
 
-import com.alibaba.druid.pool.DruidDataSource;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.github.rocketk.data.*;
@@ -10,6 +9,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.sql.DataSource;
+import java.io.Closeable;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -27,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author pengyu
  */
 public abstract class CrudCasesTest {
-    protected DruidDataSource ds;
+    protected DataSource ds;
 
     @BeforeEach
     public void initDataSource() throws SQLException, IOException {
@@ -37,8 +38,12 @@ public abstract class CrudCasesTest {
 
     @AfterEach
     public void closeDataSource() {
-        if (ds != null) {
-            ds.close();
+        if (ds != null && ds instanceof Closeable) {
+            try {
+                ((Closeable) ds).close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
