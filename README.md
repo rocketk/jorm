@@ -30,7 +30,6 @@ Different from Mybatis and Hibernate, JORM encourages developers to directly use
 - [x] Custom `RowMapper`
 - [ ] Batch
 - [x] Transaction
-- [ ] Join
 
 # Get Started
 
@@ -42,7 +41,7 @@ Just add the dependency to your `pom.xml`
 <dependency>
     <groupId>io.github.rocketk</groupId>
     <artifactId>jorm</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
