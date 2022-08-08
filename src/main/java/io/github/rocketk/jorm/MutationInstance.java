@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import io.github.rocketk.jorm.conf.Config;
 import io.github.rocketk.jorm.err.JormMutationException;
 import io.github.rocketk.jorm.err.WhereClauseAbsentException;
+import io.github.rocketk.jorm.executor.DefaultSqlExecutor;
 import io.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -12,8 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Field;
-import java.sql.*;
-import java.util.Date;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.*;
 
 import static io.github.rocketk.jorm.util.ReflectionUtil.*;
@@ -31,7 +33,7 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
 //    private final int MODE_INSERT = 0;
 //    private final int MODE_UPDATE = 1;
 //    private final int MODE_DELETE = 2;
-    private Mode mode; // 0 for insert, 1 for update
+    private MutationMode mutationMode; // 0 for insert, 1 for update
     private String whereClause;
     private Object[] whereArgs;
     private boolean ignoreNoWhereClauseWarning;
@@ -62,7 +64,7 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
         });
         // only for updating and deleting
         if (whereArgs != null && whereArgs.length > 0) {
-            switch (mode) {
+            switch (mutationMode) {
                 case INSERT:
                     break;
                 case UPDATE:
@@ -86,7 +88,7 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
         } else {
             return;
         }
-        switch (mode) {
+        switch (mutationMode) {
             case INSERT:
                 createdAtColumn(type).ifPresent(column -> argsMap.putIfAbsent(column, new Date()));
                 // pass
@@ -96,7 +98,7 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
             case DELETE:
                 break;
             default:
-                throw new IllegalStateException("Unexpected value: " + mode);
+                throw new IllegalStateException("Unexpected value: " + mutationMode);
         }
     }
 
@@ -194,7 +196,7 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
 
     @Override
     public boolean insert() {
-        mode = Mode.INSERT;
+        mutationMode = MutationMode.INSERT;
         init();
         final String sql = this.buildInsertSql();
         if (this.config.isPrintSql()) {
@@ -220,34 +222,35 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
 
     @Override
     public long[] insertAndReturnKeys() {
-        mode = Mode.INSERT;
+        mutationMode = MutationMode.INSERT;
         init();
         final String sql = this.buildInsertSql();
         if (this.config.isPrintSql()) {
             logger.info("exec sql: \"{}\", argValues: \"{}\"", sql, this.argValues);
         }
-        try (final Connection conn = this.ds.getConnection();
-             final PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            setArgs(ps, this.argValues.toArray());
-            final int affected = ps.executeUpdate();
-            if (affected == 0) {
-                throw new JormMutationException("failed to insert: " + this.table);
-            }
-            try (final ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                List<Long> keys = Lists.newArrayList();
-                while (generatedKeys.next()) {
-                    keys.add(generatedKeys.getLong(1));
-                }
-                return keys.stream().mapToLong(Long::longValue).toArray();
-            }
-        } catch (SQLException e) {
-            throw new JormMutationException(e);
-        }
+//        try (final Connection conn = this.ds.getConnection();
+//             final PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+//            setArgs(ps, this.argValues.toArray());
+//            final int affected = ps.executeUpdate();
+//            if (affected == 0) {
+//                throw new JormMutationException("failed to insert: " + this.table);
+//            }
+//            try (final ResultSet generatedKeys = ps.getGeneratedKeys()) {
+//                List<Long> keys = Lists.newArrayList();
+//                while (generatedKeys.next()) {
+//                    keys.add(generatedKeys.getLong(1));
+//                }
+//                return keys.stream().mapToLong(Long::longValue).toArray();
+//            }
+//        } catch (SQLException e) {
+//            throw new JormMutationException(e);
+//        }
+        return new DefaultSqlExecutor<Long[]>().executeUpdateAndReturnKeys(ds, sql, argValues.toArray(), this::setArgs);
     }
 
     @Override
     public long update() {
-        mode = Mode.UPDATE;
+        mutationMode = MutationMode.UPDATE;
 //        throw new UnsupportedOperationException("method execUpdate is not implemented");
         init();
         final String sql = buildUpdateSql();
@@ -256,7 +259,7 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
 
     @Override
     public long delete() {
-        mode = Mode.DELETE;
+        mutationMode = MutationMode.DELETE;
         init();
         final String sql = buildDeleteSql();
         return execUpdateInternally(sql);
@@ -266,13 +269,14 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
         if (config.isPrintSql()) {
             logger.info("exec sql: \"{}\", argValues: \"{}\"", sql, argValues);
         }
-        try (final Connection conn = this.ds.getConnection();
-             final PreparedStatement ps = conn.prepareStatement(sql)) {
-            setArgs(ps, argValues.toArray());
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new JormMutationException(e);
-        }
+//        try (final Connection conn = this.ds.getConnection();
+//             final PreparedStatement ps = conn.prepareStatement(sql)) {
+//            setArgs(ps, argValues.toArray());
+//            return ps.executeUpdate();
+//        } catch (SQLException e) {
+//            throw new JormMutationException(e);
+//        }
+        return new DefaultSqlExecutor<Long>().executeUpdate(ds, sql, argValues.toArray(), this::setArgs);
     }
 
     private String buildInsertSql() {
@@ -327,9 +331,4 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
         sql.append("delete from ").append(this.table);
     }
 
-    private enum Mode {
-        INSERT,
-        UPDATE,
-        DELETE,
-    }
 }

@@ -6,7 +6,7 @@ import io.github.rocketk.jorm.conf.Config;
 import io.github.rocketk.jorm.dialect.Dialect;
 import io.github.rocketk.jorm.dialect.LimitOffsetAppender;
 import io.github.rocketk.jorm.dialect.LimitOffsetAppenderFactory;
-import io.github.rocketk.jorm.err.JormQueryException;
+import io.github.rocketk.jorm.executor.DefaultSqlExecutor;
 import io.github.rocketk.jorm.mapper.row.RowMapper;
 import io.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -14,8 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -29,8 +27,9 @@ import java.util.Set;
 public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<T> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     protected List<Object> args = Lists.newArrayList();
-    private Set<String> selectedColumns = Sets.newHashSet();
-    private Set<String> omittedColumns = Sets.newHashSet();
+    private final Set<String> selectedColumns = Sets.newHashSet();
+    private final Set<String> omittedColumns = Sets.newHashSet();
+    //    private final SqlExecutor<T> sqlExecutor = new DefaultSqlExecutor<>();
     private StringBuilder whereClause = new StringBuilder(128);
     //    private List<Object> whereClauseArgs = new ArrayList<>();
     private String orderByClause;
@@ -40,23 +39,12 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
     private boolean findDeletedRows;
 
     public QueryInstance(DataSource ds, Config config, Class<T> model) {
-        super(ds, config, model);
+        this(ds, config, model, null);
     }
 
     public QueryInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
         super(ds, config, model, rowMapperFactory);
     }
-
-    //    public JormModelQueryInstance(DataSource ds) {
-//        this.ds = ds;
-//        this.config = defaultConfig();
-//    }
-
-//    @Override
-//    public ModelQuery<T> model(Class<T> model) {
-//        this.model = model;
-//        return this;
-//    }
 
     @Override
     public Query<T> rowMapper(RowMapper<T> rowMapper) {
@@ -95,7 +83,6 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
         }
         this.whereClause.append(whereClause);
         this.args = Lists.newArrayList();
-//        this.args = Optional.ofNullable(args).orElse(new Object[0]);
         if (args != null && args.length > 0) {
             this.args.addAll(Arrays.asList(args));
         }
@@ -164,35 +151,22 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
         if (this.config.isPrintSql()) {
             logger.info("exec sql: \"{}\", args: \"{}\"", sql, args);
         }
-//        final long t1 = System.currentTimeMillis();
-//        logger.info("buildQuerySql cost: {} ms", t1 - t0);
-        try (final Connection conn = this.ds.getConnection();
-             final PreparedStatement ps = conn.prepareStatement(sql)) {
-//            final long t2 = System.currentTimeMillis();
-//            logger.info("prepareStatement cost: {} ms", t2 - t1);
-            setArgs(ps, args);
-//            final long t3 = System.currentTimeMillis();
-//            logger.info("setArgs cost: {} ms", t3 - t2);
-            try (final ResultSet rs = ps.executeQuery()) {
-//                final long t4 = System.currentTimeMillis();
-//                logger.info("executeQuery cost: {} ms", t4 - t3);
-                final T obj = parseResultSetToSingleObject(rs);
-//                final long t5 = System.currentTimeMillis();
-//                logger.info("parseResultSetToSingleObject cost: {} ms", t5 - t4);
-                return Optional.ofNullable(obj);
-            } catch (SQLException e) {
-                e.printStackTrace();
-                throw e;
-            }
-        } catch (SQLException e) {
-            logger.error("an error occurred while executing sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}",
-                    sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
-            throw new JormQueryException(e);
-        } finally {
-//            final long cost = System.currentTimeMillis() - t0;
-//            logger.info("total cost: {} ms", cost);
-        }
-
+//        try (final Connection conn = this.ds.getConnection();
+//             final PreparedStatement ps = conn.prepareStatement(sql)) {
+//            setArgs(ps, args);
+//            try (final ResultSet rs = ps.executeQuery()) {
+//                final T obj = parseResultSetToSingleObject(rs);
+//                return Optional.ofNullable(obj);
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//                throw e;
+//            }
+//        } catch (SQLException e) {
+//            logger.error("an error occurred while executing sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}",
+//                    sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
+//            throw new JormQueryException(e);
+//        }
+        return new DefaultSqlExecutor<Optional<T>>().executeQuery(ds, sql, args.toArray(), this::setArgs, rs -> Optional.ofNullable(parseResultSetToSingleObject(rs)));
     }
 
     @Override
@@ -204,22 +178,22 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
         if (this.config.isPrintSql()) {
             logger.info("exec sql: \"{}\", args: \"{}\"", sql, args);
         }
-        try (final Connection conn = this.ds.getConnection();
-             final PreparedStatement ps = conn.prepareStatement(sql)) {
-            setArgs(ps, args);
-            try (final ResultSet rs = ps.executeQuery()) {
-                return parseResultSetToLong(rs);
-            } catch (SQLException e) {
-                logger.error("failed to execute the sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}",
-                        sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
-                throw e;
-            }
-        } catch (SQLException e) {
-            logger.error("an error occurred while executing sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}",
-                    sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
-            throw new JormQueryException(e);
-        }
-
+//        try (final Connection conn = this.ds.getConnection();
+//             final PreparedStatement ps = conn.prepareStatement(sql)) {
+//            setArgs(ps, args);
+//            try (final ResultSet rs = ps.executeQuery()) {
+//                return parseResultSetToLong(rs);
+//            } catch (SQLException e) {
+//                logger.error("failed to execute the sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}",
+//                        sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
+//                throw e;
+//            }
+//        } catch (SQLException e) {
+//            logger.error("an error occurred while executing sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}",
+//                    sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
+//            throw new JormQueryException(e);
+//        }
+        return new DefaultSqlExecutor<Long>().executeQuery(ds, sql, args.toArray(), this::setArgs, this::parseResultSetToLong);
     }
 
     @Override
@@ -229,25 +203,19 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
         if (this.config.isPrintSql()) {
             logger.info("exec sql: \"{}\", args: \"{}\"", sql, args);
         }
-        try (final Connection conn = this.ds.getConnection();
-             final PreparedStatement ps = conn.prepareStatement(sql)) {
-            setArgs(ps, args);
-            try (final ResultSet rs = ps.executeQuery()) {
-                return parseResultSetToList(rs);
-            } catch (SQLException e) {
-                throw e;
-            }
-        } catch (SQLException e) {
-            throw new JormQueryException(e);
-        }
-    }
-
-//    private boolean onlyFindNonDeleted() {
-//        if (this.findDeletedRows) {
-//            return false;
+//        try (final Connection conn = this.ds.getConnection();
+//             final PreparedStatement ps = conn.prepareStatement(sql)) {
+//            setArgs(ps, args);
+//            try (final ResultSet rs = ps.executeQuery()) {
+//                return parseResultSetToList(rs);
+//            } catch (SQLException e) {
+//                throw e;
+//            }
+//        } catch (SQLException e) {
+//            throw new JormQueryException(e);
 //        }
-//        return onlyFindNonDeletedByAnnotation(this.model);
-//    }
+        return new DefaultSqlExecutor<List<T>>().executeQuery(ds, sql, args.toArray(), this::setArgs, this::parseResultSetToList);
+    }
 
     private String buildQuerySql() {
         if (StringUtils.isNotBlank(this.rawSql)) {
@@ -269,27 +237,6 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
         appendLimitAndOffset(sql);
         return sql.toString();
     }
-
-//    private void setValues(PreparedStatement ps, Object... args) {
-//        if (args == null || args.length == 0) {
-//            return;
-//        }
-//        try {
-//            for (int i = 0; i < args.length; i++) {
-//                final Object arg = args[i];
-//                final int parameterIndex = i + 1;
-//                if (arg == null) {
-//                    ps.setNull(parameterIndex, ps.getParameterMetaData().getParameterType(parameterIndex));
-//                } else if (arg instanceof Integer) {
-//                    ps.setInt(parameterIndex, (Integer) arg);
-//                } else {
-//                    ps.setObject(parameterIndex, arg);
-//                }
-//            }
-//        } catch (SQLException e) {
-//            throw new JormQueryException(e);
-//        }
-//    }
 
     private List<T> parseResultSetToList(ResultSet rs) throws SQLException {
         final List<T> list = Lists.newArrayList();
@@ -324,9 +271,6 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
         if (limitOffsetAppender == null) {
             limitOffsetAppender = LimitOffsetAppenderFactory.byDialect(config.getDialect());
         }
-//        if (limitOffsetAppender == null) {
-//            throw new NullPointerException("limitOffsetAppender is null");
-//        }
         limitOffsetAppender.appendLimitAndOffset(sql, limit, offset);
     }
 
