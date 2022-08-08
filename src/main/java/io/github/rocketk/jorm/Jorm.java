@@ -18,9 +18,7 @@ public class Jorm {
     private RowMapperFactory rowMapperFactory;
 
     public Jorm(DataSource ds) {
-        this.ds = ds;
-        this.config = defaultConfig();
-        init();
+        this(ds, defaultConfig());
     }
 
     public Jorm(DataSource ds, Config config) {
