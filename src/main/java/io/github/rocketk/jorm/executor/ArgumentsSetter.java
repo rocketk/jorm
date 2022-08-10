@@ -4,7 +4,6 @@ import java.sql.PreparedStatement;
 
 /**
  * @author pengyu
- * @date 2022/8/8
  */
 @FunctionalInterface
 public interface ArgumentsSetter {

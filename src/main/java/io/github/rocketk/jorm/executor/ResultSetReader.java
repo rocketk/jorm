@@ -5,7 +5,6 @@ import java.sql.SQLException;
 
 /**
  * @author pengyu
- * @date 2022/8/8
  */
 @FunctionalInterface
 public interface ResultSetReader<T> {

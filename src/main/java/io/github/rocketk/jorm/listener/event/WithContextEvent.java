@@ -7,7 +7,6 @@ import java.util.Optional;
 
 /**
  * @author pengyu
- * @date 2022/8/3
  */
 public abstract class WithContextEvent implements Event {
     private Map<String, Object> context;

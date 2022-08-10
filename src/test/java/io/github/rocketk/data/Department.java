@@ -5,7 +5,6 @@ import java.util.List;
 
 /**
  * @author pengyu
- * @date 2022/6/23
  */
 public class Department {
     private long pk;

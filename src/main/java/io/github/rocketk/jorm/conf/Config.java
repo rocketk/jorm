@@ -3,6 +3,8 @@ package io.github.rocketk.jorm.conf;
 import io.github.rocketk.jorm.dialect.Dialect;
 import io.github.rocketk.jorm.dialect.LimitOffsetAppender;
 import io.github.rocketk.jorm.json.JsonProvider;
+import io.github.rocketk.jorm.listener.SqlTagMapper;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import static io.github.rocketk.jorm.json.JsonProvider.JACKSON;
 
@@ -25,6 +27,8 @@ public class Config {
     private LimitOffsetAppender limitOffsetAppender;
     private boolean printSql = true;
     private Dialect dialect = Dialect.STANDARD;
+    private MeterRegistry meterRegistry;
+    private SqlTagMapper sqlTagMapper;
 
 
     public String getArrayDelimiter() {
@@ -65,5 +69,21 @@ public class Config {
 
     public void setLimitOffsetAppender(LimitOffsetAppender limitOffsetAppender) {
         this.limitOffsetAppender = limitOffsetAppender;
+    }
+
+    public MeterRegistry getMeterRegistry() {
+        return meterRegistry;
+    }
+
+    public void setMeterRegistry(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
+
+    public SqlTagMapper getSqlTagMapper() {
+        return sqlTagMapper;
+    }
+
+    public void setSqlTagMapper(SqlTagMapper sqlTagMapper) {
+        this.sqlTagMapper = sqlTagMapper;
     }
 }

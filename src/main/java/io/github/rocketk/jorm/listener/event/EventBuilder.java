@@ -9,20 +9,17 @@ import java.util.Map;
 
 /**
  * @author pengyu
- * @date 2022/8/3
  */
-public class EventBuilder<E extends Event> {
+public class EventBuilder<E> {
     private Map<String, Object> context;
+    private StatementExecutedEvent.StmtType stmtType;
     private String sql;
     private Object[] args;
     private Date startedAt;
     private Date completedAt;
-    private Duration costs;
     private boolean success;
     private Throwable exception;
-    private long affectedRows;
     private MutationMode mutationMode;
-    private long retrievedRows;
 
     private Class<E> eventType;
 
@@ -59,11 +56,6 @@ public class EventBuilder<E extends Event> {
         return this;
     }
 
-    public EventBuilder<E> costs(Duration costs) {
-        this.costs = costs;
-        return this;
-    }
-
     public EventBuilder<E> success(boolean success) {
         this.success = success;
         return this;
@@ -74,18 +66,8 @@ public class EventBuilder<E extends Event> {
         return this;
     }
 
-    public EventBuilder<E> affectedRows(long affectedRows) {
-        this.affectedRows = affectedRows;
-        return this;
-    }
-
     public EventBuilder<E> mutationMode(MutationMode mutationMode) {
         this.mutationMode = mutationMode;
-        return this;
-    }
-
-    public EventBuilder<E> retrievedRows(long retrievedRows) {
-        this.retrievedRows = retrievedRows;
         return this;
     }
 
@@ -94,6 +76,16 @@ public class EventBuilder<E extends Event> {
             context = Maps.newLinkedHashMap();
         }
         context.put(key, value);
+        return this;
+    }
+
+    public EventBuilder<E> eventType(Class<E> eventType) {
+        this.eventType = eventType;
+        return this;
+    }
+
+    public EventBuilder<E> stmtType(StatementExecutedEvent.StmtType stmtType) {
+        this.stmtType = stmtType;
         return this;
     }
 
@@ -110,22 +102,16 @@ public class EventBuilder<E extends Event> {
         }
         if (StatementExecutedEvent.class.isAssignableFrom(eventType)) {
             StatementExecutedEvent e = (StatementExecutedEvent) event;
+            e.setStmtType(stmtType);
             e.setSql(sql);
             e.setArgs(args);
             e.setException(exception);
             e.setStartedAt(startedAt);
             e.setCompletedAt(completedAt);
             e.setSuccess(success);
-            e.setCosts(costs);
-        }
-        if (QueryStatementExecutedEvent.class.isAssignableFrom(eventType)) {
-            QueryStatementExecutedEvent e = (QueryStatementExecutedEvent) event;
-            e.setRetrievedRows(retrievedRows);
-        }
-        if (MutationStatementExecutedEvent.class.isAssignableFrom(eventType)) {
-            MutationStatementExecutedEvent e = (MutationStatementExecutedEvent) event;
-            e.setAffectedRows(affectedRows);
+            e.setCosts(Duration.ofMillis(completedAt.getTime() - startedAt.getTime()));
         }
         return event;
     }
+
 }

@@ -5,7 +5,7 @@ import com.google.common.collect.Maps;
 import io.github.rocketk.jorm.conf.Config;
 import io.github.rocketk.jorm.err.JormMutationException;
 import io.github.rocketk.jorm.err.WhereClauseAbsentException;
-import io.github.rocketk.jorm.executor.DefaultSqlExecutor;
+import io.github.rocketk.jorm.executor.SqlExecutor;
 import io.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -13,9 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Field;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.*;
 
 import static io.github.rocketk.jorm.util.ReflectionUtil.*;
@@ -29,10 +26,6 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
     private final List<Object> argValues = Lists.newArrayList();
     private final Map<String, Object> argsMap = Maps.newLinkedHashMap();
     private final List<String> omittedColumns = Lists.newArrayList();
-    //    private Map<String, Object> args = new HashMap<>();
-//    private final int MODE_INSERT = 0;
-//    private final int MODE_UPDATE = 1;
-//    private final int MODE_DELETE = 2;
     private MutationMode mutationMode; // 0 for insert, 1 for update
     private String whereClause;
     private Object[] whereArgs;
@@ -46,6 +39,10 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
 
     public MutationInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
         super(ds, config, model, rowMapperFactory);
+    }
+
+    public MutationInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory, SqlExecutor sqlExecutor) {
+        super(ds, config, model, rowMapperFactory, sqlExecutor);
     }
 
     @Override
@@ -114,18 +111,12 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
             if (shouldIgnoreWriteToDb(f)) {
                 continue;
             }
-//            String columnName = columnName(f);
-//            if (StringUtils.isBlank(columnName)) {
-//                columnName = this.columnFieldNameMapper.fieldNameToColumnName(f.getName());
-//            }
             final String columnName = columnName(f).orElseGet(() -> columnFieldNameMapper.fieldNameToColumnName(f.getName()));
             if (omittedColumns.contains(columnName)) {
                 continue;
             }
             try {
                 final Object value = f.get(this.object);
-//                this.argKeys.add(columnName);
-//                this.argValues.add(value);
                 // 使用 obj() 添加的待更新列，是不考虑 null 值的，如果希望强制设置 null 值给数据库，应当使用 set() 方法
                 if (value != null) {
                     this.argsMap.putIfAbsent(columnName, value);
@@ -158,9 +149,6 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
 
     @Override
     public Mutation<T> set(String column, Object value) {
-//        this.args.put(column, value);
-//        this.argKeys.add(column);
-//        this.argValues.add(value);
         this.argsMap.put(column, value);
         return this;
     }
@@ -199,16 +187,7 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
         mutationMode = MutationMode.INSERT;
         init();
         final String sql = this.buildInsertSql();
-        if (this.config.isPrintSql()) {
-            logger.info("exec sql: \"{}\", argValues: \"{}\"", sql, this.argValues);
-        }
-        try (final Connection conn = this.ds.getConnection();
-             final PreparedStatement ps = conn.prepareStatement(sql)) {
-            setArgs(ps, this.argValues.toArray());
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new JormMutationException(e);
-        }
+        return execUpdateInternally(sql) > 0;
     }
 
     @Override
@@ -228,24 +207,7 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
         if (this.config.isPrintSql()) {
             logger.info("exec sql: \"{}\", argValues: \"{}\"", sql, this.argValues);
         }
-//        try (final Connection conn = this.ds.getConnection();
-//             final PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-//            setArgs(ps, this.argValues.toArray());
-//            final int affected = ps.executeUpdate();
-//            if (affected == 0) {
-//                throw new JormMutationException("failed to insert: " + this.table);
-//            }
-//            try (final ResultSet generatedKeys = ps.getGeneratedKeys()) {
-//                List<Long> keys = Lists.newArrayList();
-//                while (generatedKeys.next()) {
-//                    keys.add(generatedKeys.getLong(1));
-//                }
-//                return keys.stream().mapToLong(Long::longValue).toArray();
-//            }
-//        } catch (SQLException e) {
-//            throw new JormMutationException(e);
-//        }
-        return new DefaultSqlExecutor<Long[]>().executeUpdateAndReturnKeys(ds, sql, argValues.toArray(), this::setArgs);
+        return sqlExecutor.executeUpdateAndReturnKeys(ds, sql, argValues.toArray(), this::setArgs);
     }
 
     @Override
@@ -269,14 +231,7 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
         if (config.isPrintSql()) {
             logger.info("exec sql: \"{}\", argValues: \"{}\"", sql, argValues);
         }
-//        try (final Connection conn = this.ds.getConnection();
-//             final PreparedStatement ps = conn.prepareStatement(sql)) {
-//            setArgs(ps, argValues.toArray());
-//            return ps.executeUpdate();
-//        } catch (SQLException e) {
-//            throw new JormMutationException(e);
-//        }
-        return new DefaultSqlExecutor<Long>().executeUpdate(ds, sql, argValues.toArray(), this::setArgs);
+        return sqlExecutor.executeUpdate(ds, sql, argValues.toArray(), this::setArgs);
     }
 
     private String buildInsertSql() {
