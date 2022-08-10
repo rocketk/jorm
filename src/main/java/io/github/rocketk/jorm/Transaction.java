@@ -4,6 +4,7 @@ import io.github.rocketk.jorm.conf.Config;
 import io.github.rocketk.jorm.datasource.StickyConnectionDataSourceWrapper;
 import io.github.rocketk.jorm.datasource.TransactionalConnectionWrapper;
 import io.github.rocketk.jorm.err.JormTransactionException;
+import io.github.rocketk.jorm.executor.SqlExecutor;
 import io.github.rocketk.jorm.mapper.row.DefaultRowMapperFactory;
 import io.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import org.slf4j.Logger;
@@ -22,11 +23,12 @@ import static io.github.rocketk.jorm.conf.ConfigFactory.defaultConfig;
  */
 public class Transaction {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final Config config;
+    private Config config;
     private StickyConnectionDataSourceWrapper ds;
     private TransactionalConnectionWrapper singleConnection;
     private boolean hasRollback;
     private RowMapperFactory rowMapperFactory;
+    private SqlExecutor sqlExecutor;
 
     private Consumer<Transaction> operations;
     private BiConsumer<Transaction, Exception> onErrorFunc = (t, e) -> {
@@ -35,17 +37,14 @@ public class Transaction {
     };
 
     public Transaction(DataSource ds) {
-        this.ds = new StickyConnectionDataSourceWrapper(ds);
-        try {
-            singleConnection = (TransactionalConnectionWrapper) ds.getConnection();
-        } catch (SQLException e) {
-            throw new JormTransactionException(e);
-        }
-        this.config = defaultConfig();
-        init();
+        this(ds, null);
     }
 
     public Transaction(DataSource ds, Config config) {
+        this(ds, config, null, null);
+    }
+
+    public Transaction(DataSource ds, Config config, RowMapperFactory rowMapperFactory, SqlExecutor sqlExecutor) {
         this.ds = new StickyConnectionDataSourceWrapper(ds);
         try {
             singleConnection = (TransactionalConnectionWrapper) this.ds.getConnection();
@@ -53,10 +52,15 @@ public class Transaction {
             throw new JormTransactionException(e);
         }
         this.config = config;
+        this.rowMapperFactory = rowMapperFactory;
+        this.sqlExecutor = sqlExecutor;
         init();
     }
 
     private void init() {
+        if (config == null) {
+            config = defaultConfig();
+        }
         if (rowMapperFactory == null) {
             rowMapperFactory = new DefaultRowMapperFactory(config.getArrayDelimiter(), config.getJsonProvider());
         }

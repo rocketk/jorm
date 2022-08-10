@@ -3,10 +3,10 @@ package io.github.rocketk.jorm;
 import io.github.rocketk.jorm.anno.JormCustomEnum;
 import io.github.rocketk.jorm.conf.Config;
 import io.github.rocketk.jorm.err.JormQueryException;
+import io.github.rocketk.jorm.executor.DefaultSqlExecutor;
+import io.github.rocketk.jorm.executor.SqlExecutor;
 import io.github.rocketk.jorm.json.JsonMapper;
 import io.github.rocketk.jorm.json.JsonMapperFactory;
-import io.github.rocketk.jorm.listener.Listener;
-import io.github.rocketk.jorm.listener.event.QueryStatementExecutedEvent;
 import io.github.rocketk.jorm.mapper.column.ColumnFieldNameMapper;
 import io.github.rocketk.jorm.mapper.column.DelimiterBasedStringArrayColumnFieldMapper;
 import io.github.rocketk.jorm.mapper.column.SnakeCamelColumnFieldNameMapper;
@@ -38,6 +38,7 @@ public abstract class AbstractQueryInstance<T> {
     protected JsonMapper jsonMapper;
     protected RowMapperFactory rowMapperFactory;
     protected RowMapper<T> rowMapper;
+    protected SqlExecutor sqlExecutor;
     protected DataSource ds;
     protected Config config;
     protected Class<T> model;
@@ -47,25 +48,33 @@ public abstract class AbstractQueryInstance<T> {
     protected String rawSql;
 
     public AbstractQueryInstance(DataSource ds, Config config, Class<T> model) {
-        this.ds = ds;
-        this.config = config;
-        this.model = model;
-        initRowMapperFactory();
+        this(ds, config, model, null);
     }
 
     public AbstractQueryInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
+        this(ds, config, model, rowMapperFactory, null);
+    }
+
+    public AbstractQueryInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory, SqlExecutor sqlExecutor) {
         this.ds = ds;
         this.config = config;
         this.model = model;
         this.rowMapperFactory = rowMapperFactory;
+        this.sqlExecutor = sqlExecutor;
     }
 
     protected void init() {
-//        initRowMapperFactory();
         initTableName();
         initRowMapper();
         initJsonMapper();
         initStringArrayColumnFieldMapper();
+        initSqlExecutor();
+    }
+
+    private void initSqlExecutor() {
+        if (sqlExecutor == null) {
+            sqlExecutor = new DefaultSqlExecutor();
+        }
     }
 
     private void initStringArrayColumnFieldMapper() {
@@ -106,6 +115,7 @@ public abstract class AbstractQueryInstance<T> {
             if (model == null && !count) {
                 throw new JormQueryException("either rowMapper or model is required");
             }
+            initRowMapperFactory();
             rowMapper = rowMapperFactory.getRowMapper(model);
         }
     }

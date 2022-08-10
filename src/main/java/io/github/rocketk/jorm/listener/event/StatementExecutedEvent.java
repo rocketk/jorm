@@ -5,16 +5,16 @@ import java.util.Date;
 
 /**
  * @author pengyu
- * @date 2022/8/3
  */
-public abstract class StatementExecutedEvent extends WithContextEvent {
-    protected String sql;
-    protected Object[] args;
-    protected Date startedAt;
-    protected Date completedAt;
-    protected Duration costs;
-    protected boolean success;
-    protected Throwable exception;
+public class StatementExecutedEvent extends WithContextEvent {
+    private StmtType stmtType;
+    private String sql;
+    private Object[] args;
+    private Date startedAt;
+    private Date completedAt;
+    private Duration costs;
+    private boolean success;
+    private Throwable exception;
 
     public String getSql() {
         return sql;
@@ -70,5 +70,18 @@ public abstract class StatementExecutedEvent extends WithContextEvent {
 
     public void setCosts(Duration costs) {
         this.costs = costs;
+    }
+
+    public StmtType getStmtType() {
+        return stmtType;
+    }
+
+    public void setStmtType(StmtType stmtType) {
+        this.stmtType = stmtType;
+    }
+
+    public static enum StmtType {
+        QUERY,
+        MUTATION
     }
 }
