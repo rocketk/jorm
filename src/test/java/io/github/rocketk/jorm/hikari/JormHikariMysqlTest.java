@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author pengyu
  *
  */
-//@Disabled
+@Disabled
 public class JormHikariMysqlTest extends CrudCasesTest {
 
     @Override
