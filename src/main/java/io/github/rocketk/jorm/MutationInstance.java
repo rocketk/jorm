@@ -6,6 +6,9 @@ import io.github.rocketk.jorm.conf.Config;
 import io.github.rocketk.jorm.err.JormMutationException;
 import io.github.rocketk.jorm.err.WhereClauseAbsentException;
 import io.github.rocketk.jorm.executor.SqlExecutor;
+import io.github.rocketk.jorm.executor.SqlRequest;
+import io.github.rocketk.jorm.executor.SqlRequestBuilder;
+import io.github.rocketk.jorm.executor.StmtType;
 import io.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -26,23 +29,23 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
     private final List<Object> argValues = Lists.newArrayList();
     private final Map<String, Object> argsMap = Maps.newLinkedHashMap();
     private final List<String> omittedColumns = Lists.newArrayList();
-    private MutationMode mutationMode; // 0 for insert, 1 for update
+    private MutationMode mutationMode;
     private String whereClause;
     private Object[] whereArgs;
     private boolean ignoreNoWhereClauseWarning;
     private boolean updateDeletedRows;
     private T object;
 
-    public MutationInstance(DataSource ds, Config config, Class<T> model) {
-        super(ds, config, model);
+    public MutationInstance(String jormInstanceName, DataSource ds, Config config, Class<T> model) {
+        super(jormInstanceName, ds, config, model);
     }
 
-    public MutationInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
-        super(ds, config, model, rowMapperFactory);
+    public MutationInstance(String jormInstanceName, DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
+        super(jormInstanceName, ds, config, model, rowMapperFactory);
     }
 
-    public MutationInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory, SqlExecutor sqlExecutor) {
-        super(ds, config, model, rowMapperFactory, sqlExecutor);
+    public MutationInstance(String jormInstanceName, DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory, SqlExecutor sqlExecutor) {
+        super(jormInstanceName, ds, config, model, rowMapperFactory, sqlExecutor);
     }
 
     @Override
@@ -183,6 +186,24 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
     }
 
     @Override
+    public Mutation<T> operationId(String operationId) {
+        super.operationId = operationId;
+        return this;
+    }
+
+    private SqlRequest createSqlRequest(String sql, StmtType stmtType) {
+        return SqlRequestBuilder.builder()
+                .instanceName(jormInstanceName)
+                .operationId(operationId)
+                .dataSource(ds)
+                .sql(sql)
+                .args(argValues.toArray())
+                .argsSetter(this::setArgs)
+                .stmtType(stmtType)
+                .build();
+    }
+
+    @Override
     public boolean insert() {
         mutationMode = MutationMode.INSERT;
         init();
@@ -204,10 +225,8 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
         mutationMode = MutationMode.INSERT;
         init();
         final String sql = this.buildInsertSql();
-        if (this.config.isPrintSql()) {
-            logger.info("exec sql: \"{}\", argValues: \"{}\"", sql, this.argValues);
-        }
-        return sqlExecutor.executeUpdateAndReturnKeys(ds, sql, argValues.toArray(), this::setArgs);
+//        return sqlExecutor.executeUpdateAndReturnKeys(ds, sql, argValues.toArray(), this::setArgs, StmtType.INSERT, operationId);
+        return sqlExecutor.executeUpdateAndReturnKeys(createSqlRequest(sql, StmtType.INSERT));
     }
 
     @Override
@@ -228,10 +247,22 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
     }
 
     private long execUpdateInternally(String sql) {
-        if (config.isPrintSql()) {
-            logger.info("exec sql: \"{}\", argValues: \"{}\"", sql, argValues);
+        final StmtType stmtType;
+        switch (this.mutationMode) {
+            case INSERT:
+                stmtType = StmtType.INSERT;
+                break;
+            case UPDATE:
+                stmtType = StmtType.UPDATE;
+                break;
+            case DELETE:
+                stmtType = StmtType.DELETE;
+                break;
+            default:
+                stmtType = StmtType.MUTATION;
+                break;
         }
-        return sqlExecutor.executeUpdate(ds, sql, argValues.toArray(), this::setArgs);
+        return sqlExecutor.executeUpdate(createSqlRequest(sql, stmtType));
     }
 
     private String buildInsertSql() {
@@ -284,6 +315,12 @@ public class MutationInstance<T> extends AbstractQueryInstance<T> implements Mut
             return;
         }
         sql.append("delete from ").append(this.table);
+    }
+
+    private enum MutationMode {
+        INSERT,
+        UPDATE,
+        DELETE,
     }
 
 }

@@ -4,9 +4,7 @@ package io.github.rocketk.jorm.util;
  * @author pengyu
  */
 public class StringUtils {
-    /**
-     * @see #emptyWrap(String, String)
-     */
+
     public static String emptyWrap(String something) {
         return emptyWrap(something, "Unknown");
     }
@@ -73,6 +71,14 @@ public class StringUtils {
             }
         }
         return newContent.toString().trim();
+    }
+
+    public static String escapeWhiteCharsUseRegex(String content) {
+        final int len = length(content);
+        if (len == 0) {
+            return "";
+        }
+        return content.replaceAll("\\s+", " ").trim();
     }
 
     private static int length(String content) {

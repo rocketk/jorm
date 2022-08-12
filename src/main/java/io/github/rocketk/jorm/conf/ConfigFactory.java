@@ -3,6 +3,8 @@ package io.github.rocketk.jorm.conf;
 
 import io.github.rocketk.jorm.dialect.Dialect;
 
+import java.time.Duration;
+
 import static io.github.rocketk.jorm.json.JsonProvider.JACKSON;
 
 /**
@@ -13,8 +15,11 @@ public class ConfigFactory {
         final Config config = new Config();
         config.setJsonProvider(JACKSON);
         config.setArrayDelimiter(" ");
-        config.setPrintSql(true);
+//        config.setPrintSql(true);
         config.setDialect(Dialect.STANDARD);
+        config.setEnableEvent(false);
+        config.setEnablePrintSql(false);
+        config.setLowQueryThreshold(Duration.ofSeconds(1));
         return config;
     }
 }

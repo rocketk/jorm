@@ -1,5 +1,7 @@
 package io.github.rocketk.jorm.listener.event;
 
+import io.github.rocketk.jorm.executor.StmtType;
+
 import java.time.Duration;
 import java.util.Date;
 
@@ -7,6 +9,7 @@ import java.util.Date;
  * @author pengyu
  */
 public class StatementExecutedEvent extends WithContextEvent {
+    private String instanceName;
     private StmtType stmtType;
     private String sql;
     private Object[] args;
@@ -14,6 +17,7 @@ public class StatementExecutedEvent extends WithContextEvent {
     private Date completedAt;
     private Duration costs;
     private boolean success;
+    private String operationId;
     private Throwable exception;
 
     public String getSql() {
@@ -80,8 +84,19 @@ public class StatementExecutedEvent extends WithContextEvent {
         this.stmtType = stmtType;
     }
 
-    public static enum StmtType {
-        QUERY,
-        MUTATION
+    public String getOperationId() {
+        return operationId;
+    }
+
+    public void setOperationId(String operationId) {
+        this.operationId = operationId;
+    }
+
+    public String getInstanceName() {
+        return instanceName;
+    }
+
+    public void setInstanceName(String instanceName) {
+        this.instanceName = instanceName;
     }
 }

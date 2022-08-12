@@ -93,6 +93,8 @@ public interface Query<T> {
      */
     Query<T> shouldFindDeletedRows(boolean findDeleted);
 
+    Query<T> operationId(String operationId);
+
     Optional<T> first();
 
     List<T> find();

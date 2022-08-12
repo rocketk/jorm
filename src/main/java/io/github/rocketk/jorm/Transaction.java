@@ -23,6 +23,7 @@ import static io.github.rocketk.jorm.conf.ConfigFactory.defaultConfig;
  */
 public class Transaction {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final String jormInstanceName;
     private Config config;
     private StickyConnectionDataSourceWrapper ds;
     private TransactionalConnectionWrapper singleConnection;
@@ -36,15 +37,16 @@ public class Transaction {
         t.rollback();
     };
 
-    public Transaction(DataSource ds) {
-        this(ds, null);
+    public Transaction(String jormInstanceName, DataSource ds) {
+        this(jormInstanceName, ds, null);
     }
 
-    public Transaction(DataSource ds, Config config) {
-        this(ds, config, null, null);
+    public Transaction(String jormInstanceName, DataSource ds, Config config) {
+        this(jormInstanceName, ds, config, null, null);
     }
 
-    public Transaction(DataSource ds, Config config, RowMapperFactory rowMapperFactory, SqlExecutor sqlExecutor) {
+    public Transaction(String jormInstanceName, DataSource ds, Config config, RowMapperFactory rowMapperFactory, SqlExecutor sqlExecutor) {
+        this.jormInstanceName = jormInstanceName;
         this.ds = new StickyConnectionDataSourceWrapper(ds);
         try {
             singleConnection = (TransactionalConnectionWrapper) this.ds.getConnection();
@@ -67,19 +69,19 @@ public class Transaction {
     }
 
     public <T> Query<T> query(Class<T> model) {
-        return new QueryInstance<>(ds, config, model, rowMapperFactory);
+        return new QueryInstance<>(jormInstanceName, ds, config, model, rowMapperFactory, sqlExecutor);
     }
 
     public <T> Query<T> rawQuery(Class<T> model, String rawSql, Object... args) {
-        return new QueryInstance<>(ds, config, model, rowMapperFactory).rawSql(rawSql, args);
+        return new QueryInstance<>(jormInstanceName, ds, config, model, rowMapperFactory, sqlExecutor).rawSql(rawSql, args);
     }
 
     public Query<Map> queryMap() {
-        return new QueryInstance<>(ds, config, Map.class, rowMapperFactory);
+        return new QueryInstance<>(jormInstanceName, ds, config, Map.class, rowMapperFactory, sqlExecutor);
     }
 
     public <T> Mutation<T> mutation(Class<T> model) {
-        return new MutationInstance<>(ds, config, model, rowMapperFactory);
+        return new MutationInstance<>(jormInstanceName, ds, config, model, rowMapperFactory, sqlExecutor);
     }
 
     public Transaction operations(Consumer<Transaction> operation) {

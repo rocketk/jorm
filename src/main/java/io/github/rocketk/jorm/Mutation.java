@@ -24,6 +24,8 @@ public interface Mutation<T> {
 
     Mutation<T> shouldUpdateDeletedRows(boolean updateDeleted);
 
+    Mutation<T> operationId(String operationId);
+
     boolean insert();
 
     long insertAndReturnFirstKey();

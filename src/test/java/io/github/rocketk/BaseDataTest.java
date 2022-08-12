@@ -145,7 +145,8 @@ public class BaseDataTest {
             ScriptRunner runner = new ScriptRunner(connection);
             runner.setAutoCommit(true);
             runner.setStopOnError(false);
-            runner.setLogWriter(new PrintWriter(System.out));
+//            runner.setLogWriter(new PrintWriter(System.out));
+            runner.setLogWriter(null);
             runner.setErrorLogWriter(new PrintWriter(System.err));
             runScript(runner, resource);
         }

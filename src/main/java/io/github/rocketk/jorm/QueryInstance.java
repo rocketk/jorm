@@ -6,8 +6,10 @@ import io.github.rocketk.jorm.conf.Config;
 import io.github.rocketk.jorm.dialect.Dialect;
 import io.github.rocketk.jorm.dialect.LimitOffsetAppender;
 import io.github.rocketk.jorm.dialect.LimitOffsetAppenderFactory;
-import io.github.rocketk.jorm.executor.DefaultSqlExecutor;
 import io.github.rocketk.jorm.executor.SqlExecutor;
+import io.github.rocketk.jorm.executor.SqlRequest;
+import io.github.rocketk.jorm.executor.SqlRequestBuilder;
+import io.github.rocketk.jorm.executor.StmtType;
 import io.github.rocketk.jorm.mapper.row.RowMapper;
 import io.github.rocketk.jorm.mapper.row.RowMapperFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -39,16 +41,16 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
 
     private boolean findDeletedRows;
 
-    public QueryInstance(DataSource ds, Config config, Class<T> model) {
-        super(ds, config, model);
+    public QueryInstance(String jormInstanceName, DataSource ds, Config config, Class<T> model) {
+        super(jormInstanceName, ds, config, model);
     }
 
-    public QueryInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
-        super(ds, config, model, rowMapperFactory);
+    public QueryInstance(String jormInstanceName, DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
+        super(jormInstanceName, ds, config, model, rowMapperFactory);
     }
 
-    public QueryInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory, SqlExecutor sqlExecutor) {
-        super(ds, config, model, rowMapperFactory, sqlExecutor);
+    public QueryInstance(String jormInstanceName, DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory, SqlExecutor sqlExecutor) {
+        super(jormInstanceName, ds, config, model, rowMapperFactory, sqlExecutor);
     }
 
     @Override
@@ -148,15 +150,32 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
     }
 
     @Override
+    public Query<T> operationId(String operationId) {
+        super.operationId = operationId;
+        return this;
+    }
+
+    private SqlRequest createSqlRequest() {
+        return SqlRequestBuilder.builder()
+                .instanceName(jormInstanceName)
+                .operationId(operationId)
+                .dataSource(ds)
+                .sql(this.buildQuerySql())
+                .args(args.toArray())
+                .argsSetter(this::setArgs)
+                .stmtType(StmtType.QUERY)
+                .build();
+    }
+    @Override
     public Optional<T> first() {
 //        final long t0 = System.currentTimeMillis();
         init();
         this.limit = 1L;
         final String sql = this.buildQuerySql();
-        if (this.config.isPrintSql()) {
-            logger.info("exec sql: \"{}\", args: \"{}\"", sql, args);
-        }
-        return sqlExecutor.executeQuery(ds, sql, args.toArray(), this::setArgs, rs -> Optional.ofNullable(parseResultSetToSingleObject(rs)));
+//        return sqlExecutor.executeQuery(ds, sql, args.toArray(), this::setArgs,
+//                rs -> Optional.ofNullable(parseResultSetToSingleObject(rs)),
+//                operationId);
+        return sqlExecutor.executeQuery(createSqlRequest(), rs -> Optional.ofNullable(parseResultSetToSingleObject(rs)));
     }
 
     @Override
@@ -164,21 +183,16 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
         init();
         this.limit = 1L;
         count = true;
-        final String sql = this.buildQuerySql();
-        if (this.config.isPrintSql()) {
-            logger.info("exec sql: \"{}\", args: \"{}\"", sql, args);
-        }
-        return sqlExecutor.executeQuery(ds, sql, args.toArray(), this::setArgs, this::parseResultSetToLong);
+
+//        return sqlExecutor.executeQuery(ds, sql, args.toArray(), this::setArgs, this::parseResultSetToLong, operationId);
+        return sqlExecutor.executeQuery(createSqlRequest(), this::parseResultSetToLong);
     }
 
     @Override
     public List<T> find() {
         init();
-        final String sql = this.buildQuerySql();
-        if (this.config.isPrintSql()) {
-            logger.info("exec sql: \"{}\", args: \"{}\"", sql, args);
-        }
-        return sqlExecutor.executeQuery(ds, sql, args.toArray(), this::setArgs, this::parseResultSetToList);
+//        return sqlExecutor.executeQuery(ds, sql, args.toArray(), this::setArgs, this::parseResultSetToList, operationId);
+        return sqlExecutor.executeQuery(createSqlRequest(), this::parseResultSetToList);
     }
 
     private String buildQuerySql() {
@@ -227,7 +241,7 @@ public class QueryInstance<T> extends AbstractQueryInstance<T> implements Query<
     }
 
     private boolean hasSelectedColumns() {
-        return this.selectedColumns != null && this.selectedColumns.size() > 0;
+        return this.selectedColumns.size() > 0;
     }
 
     private void appendLimitAndOffset(StringBuilder sql) {

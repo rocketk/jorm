@@ -1,7 +1,7 @@
 package io.github.rocketk.jorm.listener.event;
 
 import com.google.common.collect.Maps;
-import io.github.rocketk.jorm.MutationMode;
+import io.github.rocketk.jorm.executor.StmtType;
 
 import java.time.Duration;
 import java.util.Date;
@@ -12,14 +12,15 @@ import java.util.Map;
  */
 public class EventBuilder<E> {
     private Map<String, Object> context;
-    private StatementExecutedEvent.StmtType stmtType;
+    private String instanceName;
+    private StmtType stmtType;
     private String sql;
     private Object[] args;
     private Date startedAt;
     private Date completedAt;
     private boolean success;
     private Throwable exception;
-    private MutationMode mutationMode;
+    private String operationId;
 
     private Class<E> eventType;
 
@@ -29,6 +30,11 @@ public class EventBuilder<E> {
 
     public static <T extends Event> EventBuilder<T> builder(Class<T> eventType) {
         return new EventBuilder<>(eventType);
+    }
+
+    public EventBuilder<E> instanceName(String instanceName) {
+        this.instanceName = instanceName;
+        return this;
     }
 
     public EventBuilder<E> context(Map<String, Object> context) {
@@ -66,8 +72,8 @@ public class EventBuilder<E> {
         return this;
     }
 
-    public EventBuilder<E> mutationMode(MutationMode mutationMode) {
-        this.mutationMode = mutationMode;
+    public EventBuilder<E> operationId(String operationId) {
+        this.operationId = operationId;
         return this;
     }
 
@@ -84,7 +90,7 @@ public class EventBuilder<E> {
         return this;
     }
 
-    public EventBuilder<E> stmtType(StatementExecutedEvent.StmtType stmtType) {
+    public EventBuilder<E> stmtType(StmtType stmtType) {
         this.stmtType = stmtType;
         return this;
     }
@@ -98,10 +104,11 @@ public class EventBuilder<E> {
         }
         if (WithContextEvent.class.isAssignableFrom(eventType)) {
             WithContextEvent e = (WithContextEvent) event;
-            e.setContext(context);
+            e.setContext(context == null ? Maps.newLinkedHashMap() : context);
         }
         if (StatementExecutedEvent.class.isAssignableFrom(eventType)) {
             StatementExecutedEvent e = (StatementExecutedEvent) event;
+            e.setInstanceName(instanceName);
             e.setStmtType(stmtType);
             e.setSql(sql);
             e.setArgs(args);
@@ -109,6 +116,7 @@ public class EventBuilder<E> {
             e.setStartedAt(startedAt);
             e.setCompletedAt(completedAt);
             e.setSuccess(success);
+            e.setOperationId(operationId);
             e.setCosts(Duration.ofMillis(completedAt.getTime() - startedAt.getTime()));
         }
         return event;

@@ -35,6 +35,6 @@ public class EventEmitter<E extends Event> {
         if (eventBuilder == null || listener == null) {
             return;
         }
-        listener.onEvent(eventBuilder.completedAt(new Date()).success(e != null).build());
+        listener.onEvent(eventBuilder.completedAt(new Date()).success(e == null).build());
     }
 }

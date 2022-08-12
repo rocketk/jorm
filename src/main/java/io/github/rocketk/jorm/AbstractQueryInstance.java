@@ -1,5 +1,6 @@
 package io.github.rocketk.jorm;
 
+import com.google.common.collect.Maps;
 import io.github.rocketk.jorm.anno.JormCustomEnum;
 import io.github.rocketk.jorm.conf.Config;
 import io.github.rocketk.jorm.err.JormQueryException;
@@ -22,6 +23,7 @@ import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static io.github.rocketk.jorm.util.JdbcUtil.setArgWithoutConversion;
@@ -47,15 +49,20 @@ public abstract class AbstractQueryInstance<T> {
 
     protected String rawSql;
 
-    public AbstractQueryInstance(DataSource ds, Config config, Class<T> model) {
-        this(ds, config, model, null);
+    protected String operationId;
+    protected String jormInstanceName;
+
+
+    public AbstractQueryInstance(String jormInstanceName, DataSource ds, Config config, Class<T> model) {
+        this(jormInstanceName, ds, config, model, null);
     }
 
-    public AbstractQueryInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
-        this(ds, config, model, rowMapperFactory, null);
+    public AbstractQueryInstance(String jormInstanceName, DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory) {
+        this(jormInstanceName, ds, config, model, rowMapperFactory, null);
     }
 
-    public AbstractQueryInstance(DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory, SqlExecutor sqlExecutor) {
+    public AbstractQueryInstance(String jormInstanceName, DataSource ds, Config config, Class<T> model, RowMapperFactory rowMapperFactory, SqlExecutor sqlExecutor) {
+        this.jormInstanceName = jormInstanceName;
         this.ds = ds;
         this.config = config;
         this.model = model;

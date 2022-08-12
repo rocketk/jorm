@@ -10,8 +10,8 @@ import io.github.rocketk.jorm.listener.event.StatementExecutedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
 import java.sql.*;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 
@@ -22,51 +22,56 @@ import static io.github.rocketk.jorm.listener.SilentListenerFactory.silentListen
  */
 public class DefaultSqlExecutor implements SqlExecutor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final boolean enableTrace;
-    private final Listener<StatementExecutedEvent> listener;
-
-    public DefaultSqlExecutor() {
-        this(false);
-    }
-
-    public DefaultSqlExecutor(boolean enableTrace) {
-        this(enableTrace, null);
-    }
-
-    public DefaultSqlExecutor(boolean enableTrace, Listener<StatementExecutedEvent> listener) {
-        this.enableTrace = enableTrace;
-        this.listener = listener == null ? silentListener(StatementExecutedEvent.class) : listener;
-    }
-
+    private boolean enableEvent;
+    private boolean enablePrintSql;
+    private Duration lowQueryThreshold;
+    private Listener<StatementExecutedEvent> listener = silentListener(StatementExecutedEvent.class);
 
     @Override
-    public <T> T executeQuery(DataSource ds, String sql, Object[] args, ArgumentsSetter argsSetter, ResultSetReader<T> resultSetReader) {
-        try (final Connection conn = ds.getConnection(); final PreparedStatement ps = conn.prepareStatement(sql)) {
-            argsSetter.setArguments(ps, args);
-            final EventEmitter<StatementExecutedEvent> emitter = newSqlExecutedEmitter(sql, args, StatementExecutedEvent.StmtType.QUERY);
+    public <T> T executeQuery(SqlRequest sqlRequest, ResultSetReader<T> resultSetReader) {
+        final String sql = sqlRequest.getSql();
+        final Object[] args = sqlRequest.getArgs();
+        if (enablePrintSql) {
+            logger.info("executing sql: \"{}\", args: \"{}\"", sql, args);
+        }
+        try (final Connection conn = sqlRequest.getDataSource().getConnection();
+             final PreparedStatement ps = conn.prepareStatement(sql)) {
+            sqlRequest.getArgsSetter().setArguments(ps, args);
+            final EventEmitter<StatementExecutedEvent> emitter = newSqlExecutedEmitter(sqlRequest);
+            final long start = System.currentTimeMillis();
             try (final ResultSet rs = ps.executeQuery()) {
+                logLowQuery(start, sql, args);
                 emitter.emit();
                 return resultSetReader.read(rs);
             } catch (SQLException e) {
+                logger.error("an error occurred while executing sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}", sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
                 emitter.emit(e);
                 throw e;
             }
         } catch (SQLException e) {
-            logger.error("an error occurred while executing sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}", sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
             throw new JormQueryException(e);
         }
     }
 
 
     @Override
-    public long[] executeUpdateAndReturnKeys(DataSource ds, String sql, Object[] args, ArgumentsSetter argsSetter) {
-        try (final Connection conn = ds.getConnection(); final PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            argsSetter.setArguments(ps, args);
-            final EventEmitter<StatementExecutedEvent> emitter = newSqlExecutedEmitter(sql, args, StatementExecutedEvent.StmtType.MUTATION);
+    public long[] executeUpdateAndReturnKeys(SqlRequest sqlRequest) {
+        final String sql = sqlRequest.getSql();
+        final Object[] args = sqlRequest.getArgs();
+        if (enablePrintSql) {
+            logger.info("executing sql: \"{}\", args: \"{}\"", sql, args);
+        }
+        try (final Connection conn = sqlRequest.getDataSource().getConnection();
+             final PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            sqlRequest.getArgsSetter().setArguments(ps, args);
+            final EventEmitter<StatementExecutedEvent> emitter = newSqlExecutedEmitter(sqlRequest);
+            final long start = System.currentTimeMillis();
             try {
                 ps.executeUpdate();
+                logLowQuery(start, sql, args);
                 emitter.emit();
             } catch (SQLException e) {
+                logger.error("an error occurred while executing sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}", sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
                 emitter.emit(e);
                 throw e;
             }
@@ -83,15 +88,23 @@ public class DefaultSqlExecutor implements SqlExecutor {
     }
 
     @Override
-    public long executeUpdate(DataSource ds, String sql, Object[] args, ArgumentsSetter argsSetter) {
-        try (final Connection conn = ds.getConnection(); final PreparedStatement ps = conn.prepareStatement(sql)) {
-            argsSetter.setArguments(ps, args);
-            final EventEmitter<StatementExecutedEvent> emitter = newSqlExecutedEmitter(sql, args, StatementExecutedEvent.StmtType.MUTATION);
+    public long executeUpdate(SqlRequest sqlRequest) {
+        final String sql = sqlRequest.getSql();
+        final Object[] args = sqlRequest.getArgs();
+        if (enablePrintSql) {
+            logger.info("executing sql: \"{}\", args: \"{}\"", sql, args);
+        }
+        try (final Connection conn = sqlRequest.getDataSource().getConnection(); final PreparedStatement ps = conn.prepareStatement(sql)) {
+            sqlRequest.getArgsSetter().setArguments(ps, args);
+            final EventEmitter<StatementExecutedEvent> emitter = newSqlExecutedEmitter(sqlRequest);
+            final long start = System.currentTimeMillis();
             try {
                 final int affected = ps.executeUpdate();
+                logLowQuery(start, sql, args);
                 emitter.emit();
                 return affected;
             } catch (SQLException e) {
+                logger.error("an error occurred while executing sql: \"{}\", args: \"{}\". error: {}, errorCode: {}, sqlState: {}", sql, args, e.getMessage(), e.getErrorCode(), e.getSQLState());
                 emitter.emit(e);
                 throw e;
             }
@@ -100,15 +113,43 @@ public class DefaultSqlExecutor implements SqlExecutor {
         }
     }
 
-    private EventEmitter<StatementExecutedEvent> newSqlExecutedEmitter(String sql, Object[] args, StatementExecutedEvent.StmtType stmtType) {
-        if (enableTrace) {
+    private EventEmitter<StatementExecutedEvent> newSqlExecutedEmitter(SqlRequest sqlRequest) {
+        if (enableEvent) {
             final EventBuilder<StatementExecutedEvent> builder = EventBuilder.builder(StatementExecutedEvent.class)
-                    .stmtType(stmtType)
-                    .sql(sql)
-                    .args(args)
+                    .instanceName(sqlRequest.getInstanceName())
+                    .operationId(sqlRequest.getOperationId())
+                    .stmtType(sqlRequest.getStmtType())
+                    .sql(sqlRequest.getSql())
+                    .args(sqlRequest.getArgs())
                     .startedAt(new Date());
             return new EventEmitter<>(builder, listener);
         }
         return new EventEmitter<>();
+    }
+
+    private void logLowQuery(long start, String sql, Object[] args) {
+        if (lowQueryThreshold == null || lowQueryThreshold.isNegative()) {
+            return;
+        }
+        final long costs = System.currentTimeMillis() - start;
+        if (costs > lowQueryThreshold.toMillis()) {
+            logger.warn("[JORM] LOW QUERY. sql: {}, args: {}, costs: {} ms", sql, args, costs);
+        }
+    }
+
+    public void setEnableEvent(boolean enableEvent) {
+        this.enableEvent = enableEvent;
+    }
+
+    public void setEnablePrintSql(boolean enablePrintSql) {
+        this.enablePrintSql = enablePrintSql;
+    }
+
+    public void setLowQueryThreshold(Duration lowQueryThreshold) {
+        this.lowQueryThreshold = lowQueryThreshold;
+    }
+
+    public void setListener(Listener<StatementExecutedEvent> listener) {
+        this.listener = listener;
     }
 }
