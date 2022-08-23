@@ -1,5 +1,6 @@
 package io.github.rocketk.jorm.mapper.column;
 
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -75,12 +76,36 @@ public class DelimiterBasedStringArrayColumnFieldMapper implements StringArrayCo
             Boolean[] arrayObject = (Boolean[]) fieldValue;
             return String.join(this.delimiter, Arrays.stream(arrayObject).map(Object::toString).toArray(String[]::new));
         }
+        if (fieldValue instanceof boolean[]) {
+            boolean[] booleans = (boolean[]) fieldValue;
+            String[] arrayObject = new String[booleans.length];
+            for (int i = 0; i < booleans.length; i++) {
+                arrayObject[i] = booleans[i] + "";
+            }
+            return String.join(this.delimiter, arrayObject);
+        }
+        if (fieldValue instanceof Short[]) {
+            Short[] arrayObject = (Short[]) fieldValue;
+            return String.join(this.delimiter, Arrays.stream(arrayObject).map(Object::toString).toArray(String[]::new));
+        }
+        if (fieldValue instanceof short[]) {
+            short[] shorts = (short[]) fieldValue;
+            String[] arrayObject = new String[shorts.length];
+            for (int i = 0; i < shorts.length; i++) {
+                arrayObject[i] = shorts[i] + "";
+            }
+            return String.join(this.delimiter, arrayObject);
+        }
+        if (fieldValue instanceof Object[]) {
+            Object[] arrayObject = (Object[]) fieldValue;
+            return String.join(this.delimiter, Arrays.stream(arrayObject).map(Object::toString).toArray(String[]::new));
+        }
         if (fieldValue instanceof List) {
             List list = (List) fieldValue;
             return String.join(this.delimiter, list);
         }
         // todo 支持更多的数组类型
-        throw new CannotParseColumnToFieldException("unsupported fieldType: " + fieldValue.getClass().getCanonicalName());
+        throw new CannotParseColumnToFieldException(String.format("unsupported fieldType: %s", fieldValue.getClass().getCanonicalName()));
 //        if (array instanceof int[]) {
 //            int[] arrayObject = (int[]) array;
 //            return String.join(this.delimiter, Arrays.stream(arrayObject).map((int i)->Integer.valueOf(i)).toArray(String[]::new));
