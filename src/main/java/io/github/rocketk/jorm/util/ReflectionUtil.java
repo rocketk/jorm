@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Optional;
 
@@ -43,20 +44,26 @@ public class ReflectionUtil {
 
     public static <T> Optional<String> deletedAtColumn(Class<T> model) {
         final JormTable t = model.getAnnotation(JormTable.class);
-        if (t != null && t.enableSoftDelete() && StringUtils.isNotBlank(t.deletedAtColumn())) {
-            return Optional.of(t.deletedAtColumn());
-        }
-        return Optional.empty();
+        return Optional.ofNullable(t)
+                .filter(JormTable::enableSoftDelete)
+                .filter(tab -> StringUtils.isNotBlank(tab.deletedAtColumn()))
+                .map(JormTable::deletedAtColumn);
     }
 
     public static <T> Optional<String> createdAtColumn(Class<T> model) {
         final JormTable t = model.getAnnotation(JormTable.class);
-        return Optional.ofNullable(t.autoGenerateCreatedAt() ? t.createdAtColumn() : null);
+        return Optional.ofNullable(t)
+                .filter(JormTable::autoGenerateCreatedAt)
+                .map(JormTable::createdAtColumn)
+                .filter(StringUtils::isNotBlank);
     }
 
     public static <T> Optional<String> updatedAtColumn(Class<T> model) {
         final JormTable t = model.getAnnotation(JormTable.class);
-        return Optional.ofNullable(t.autoGenerateUpdatedAt() ? t.updatedAtColumn() : null);
+        return Optional.ofNullable(t)
+                .filter(JormTable::autoGenerateUpdatedAt)
+                .map(JormTable::updatedAtColumn)
+                .filter(StringUtils::isNotBlank);
     }
 
 //    public static <T> void setupCreatedAt(T object) {
@@ -130,11 +137,17 @@ public class ReflectionUtil {
     }
 
     public static boolean shouldIgnoreReadFromDb(Field field) {
+        if (Modifier.isStatic(field.getModifiers())) {
+            return true;
+        }
         final JormIgnore ignore = field.getAnnotation(JormIgnore.class);
         return ignore != null && ignore.ignoreReadFromDb();
     }
 
     public static boolean shouldIgnoreWriteToDb(Field field) {
+        if (Modifier.isStatic(field.getModifiers())) {
+            return true;
+        }
         final JormIgnore ignore = field.getAnnotation(JormIgnore.class);
         return ignore != null && ignore.ignoreWriteToDb();
     }
