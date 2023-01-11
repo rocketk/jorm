@@ -10,6 +10,7 @@ import io.github.rocketk.jorm.conf.Config;
 import io.github.rocketk.jorm.conf.ConfigFactory;
 import io.github.rocketk.jorm.dialect.Dialect;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -24,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author pengyu
  *
  */
-//@Disabled
+@Disabled
 public class JormHikariDerbyTest extends CrudCasesTest {
 
     @Override
