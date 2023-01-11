@@ -39,15 +39,16 @@ public class JormHikariDerbyTest extends CrudCasesTest {
         Assertions.assertNotNull(super.ds, "createJorm: dataSource is null");
         final Config config = ConfigFactory.defaultConfig();
         config.setDialect(Dialect.DERBY);
+        config.setEnablePrintSql(true);
         return new Jorm(ds, config);
     }
 
     @Test
     public void testRawQuery() {
         final Jorm db = createJorm();
-        final Optional<Employee> zhangsan = db.rawQuery(Employee.class, "select * from employee where name=? fetch first 1 row only", "韩梅梅").first(); // non-deleted row
+        final Optional<Employee> hmm = db.rawQuery(Employee.class, "select * from employee where name=? fetch first 1 row only", "韩梅梅").first(); // non-deleted row
         final Optional<Employee> elizabeth = db.rawQuery(Employee.class, "select * from employee where name=? fetch first 1 row only", "Elizabeth").first(); // deleted row
-        assertTrue(zhangsan.isPresent());
+        assertTrue(hmm.isPresent());
         assertTrue(elizabeth.isPresent());
     }
 }

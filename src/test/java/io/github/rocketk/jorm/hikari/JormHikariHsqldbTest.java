@@ -6,6 +6,8 @@ import io.github.rocketk.DbType;
 import io.github.rocketk.data.Employee;
 import io.github.rocketk.jorm.CrudCasesTest;
 import io.github.rocketk.jorm.Jorm;
+import io.github.rocketk.jorm.conf.Config;
+import io.github.rocketk.jorm.conf.ConfigFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -32,16 +34,18 @@ public class JormHikariHsqldbTest extends CrudCasesTest {
 
     @Override
     protected Jorm createJorm() {
-        return new Jorm(super.ds);
+        final Config config = ConfigFactory.defaultConfig();
+        config.setEnablePrintSql(true);
+        return new Jorm(super.ds, config);
     }
 
 
     @Test
     public void testRawQuery() {
         final Jorm db = createJorm();
-        final Optional<Employee> zhangsan = db.rawQuery(Employee.class, "select * from employee where name=? fetch 1 row only", "韩梅梅").first(); // non-deleted row
+        final Optional<Employee> hmm = db.rawQuery(Employee.class, "select * from employee where name=? fetch 1 row only", "韩梅梅").first(); // non-deleted row
         final Optional<Employee> elizabeth = db.rawQuery(Employee.class, "select * from employee where name=? fetch 1 row only", "Elizabeth").first(); // deleted row
-        assertTrue(zhangsan.isPresent());
+        assertTrue(hmm.isPresent());
         assertTrue(elizabeth.isPresent());
     }
 

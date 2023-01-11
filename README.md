@@ -56,7 +56,7 @@ Supported Databases:
 - Other Databases that support the features of `fetch first n rows only` and `offset n`. See `io.github.rocketk.jorm.dialect.StandardLimitOffsetAppender`
 ```java
 // ignored the creation stage of the dataSource
-final Jorm db new Jorm(dataSource);
+final Jorm db = new Jorm(dataSource);
 ```
 
 **Mysql**
@@ -64,7 +64,7 @@ final Jorm db new Jorm(dataSource);
 ```java
 final Config config = ConfigFactory.defaultConfig();
 config.setDialect(Dialect.MYSQL);
-final Jorm db new Jorm(dataSource, config);
+final Jorm db = new Jorm(dataSource, config);
 ```
 
 **Derby**
@@ -73,7 +73,7 @@ final Jorm db new Jorm(dataSource, config);
 // 省略创建 dataSource 的步骤
 final Config config = ConfigFactory.defaultConfig();
 config.setDialect(Dialect.DERBY);
-final Jorm db new Jorm(dataSource, config);
+final Jorm db = new Jorm(dataSource, config);
 ```
 
 
@@ -135,7 +135,11 @@ final List<Employee> list = db.query(Employee.class)
 
 ### Raw SQL
 ```java
-
+final Jorm db = createJorm();
+final Optional<Employee> elizabeth = db.rawQuery(Employee.class, "select * from employee where name=? fetch 1 row only", "Elizabeth")
+        .first();
+// sql for standard: "select * from employee where name=? fetch 1 row only"
+// sql for mysql: "select * from employee where name=? limit 1"
 ```
 
 ### Mapping of field names to column names & class names to table names

@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author pengyu
  *
  */
-@Disabled
+//@Disabled
 public class JormHikariMysqlTest extends CrudCasesTest {
 
     @Override
@@ -36,15 +36,16 @@ public class JormHikariMysqlTest extends CrudCasesTest {
     protected Jorm createJorm() {
         final Config config = ConfigFactory.defaultConfig();
         config.setDialect(Dialect.MYSQL);
+        config.setEnablePrintSql(true);
         return new Jorm(super.ds, config);
     }
 
     @Test
     public void testRawQuery() {
         final Jorm db = createJorm();
-        final Optional<Employee> zhangsan = db.rawQuery(Employee.class, "select * from employee where name=? limit 1", "韩梅梅").first(); // non-deleted row
+        final Optional<Employee> hmm = db.rawQuery(Employee.class, "select * from employee where name=? limit 1", "韩梅梅").first(); // non-deleted row
         final Optional<Employee> elizabeth = db.rawQuery(Employee.class, "select * from employee where name=? limit 1", "Elizabeth").first(); // deleted row
-        assertTrue(zhangsan.isPresent());
+        assertTrue(hmm.isPresent());
         assertTrue(elizabeth.isPresent());
     }
 }
